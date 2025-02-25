@@ -10,24 +10,46 @@ services:
     restart: always
 
   odc:
-    build: .
-    ports:
-      - "8888:8888"
+    build:
+      context: ../
+      dockerfile: docker/odc/Dockerfile
     environment:
-      - DB_HOSTNAME=postgres
-      - ODC_DEFAULT_DB_HOSTNAME=postgres
-      - DB_USERNAME=piksel_user
       - ODC_DEFAULT_DB_USERNAME=piksel_user
-      - DB_DATABASE=piksel_db
       - ODC_DEFAULT_DB_DATABASE=piksel_db
-      - DB_PASSWORD=passwordPiksel
+      - ODC_DEFAULT_DB_HOSTNAME=postgres
       - ODC_DEFAULT_DB_PASSWORD=passwordPiksel
     volumes:
       - ../datacube.conf:/root/.datacube.conf
-      - ../notebooks:/home/venv/notebooks
       - ../products:/home/venv/products
     depends_on:
       - postgres
+    restart: always
+
+  jupyter:
+    build:
+      context: ../
+      dockerfile: docker/jupyter/Dockerfile
+    user: "1000:1000"
+    environment:
+      - ODC_DEFAULT_DB_USERNAME=piksel_user
+      - ODC_DEFAULT_DB_DATABASE=piksel_db
+      - ODC_DEFAULT_DB_HOSTNAME=postgres
+      - ODC_DEFAULT_DB_PASSWORD=passwordPiksel
+      - PYTHONPATH=/home/venv/notebooks
+      - JUPYTER_ENABLE_LAB=yes
+    ports:
+      - "8888:8888"
+    volumes:
+      - ../notebooks:/home/venv/notebooks
+      - ../datacube.conf:/home/jupyter/.datacube.conf
+    depends_on:
+      - postgres
+      - odc
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: always
 
 volumes:
