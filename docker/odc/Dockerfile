@@ -36,11 +36,28 @@ RUN pip install --break-system-packages \
     --no-cache-dir \
     odc-stac \
     odc-geo \
+    odc-cloud[ASYNC] \
+    odc-dscache \
     boto3 \
     importlib_resources \
     psycopg2-binary \
     lark \
     sqlalchemy \
+    alembic \
+    geoalchemy2 \
+    antimeridian \
+    jsonschema \
+    datadog \
+    boltons \
+    cattrs \
+    ciso8601 \
+    urlpath \
+    click \
+    fsspec \
+    pystac-client>=0.2.0 \
+    toolz \
+    pyyaml \
+    scipy \
     deprecat && \
     pip install --break-system-packages \
     --trusted-host pypi.org \
@@ -49,8 +66,7 @@ RUN pip install --break-system-packages \
     --no-deps \
     "git+https://github.com/opendatacube/datacube-core.git@develop-1.9" \
     "git+https://github.com/opendatacube/odc-tools.git@develop-1.9#subdirectory=apps/dc_tools" \
-    "git+https://github.com/opendatacube/eo-datasets.git@integrate-1.9" \
-    "odc-cloud==0.2.3"
+    "git+https://github.com/opendatacube/eo-datasets.git@integrate-1.9"
 
 # Copy the configuration file
 COPY ../datacube.conf /root/.datacube.conf

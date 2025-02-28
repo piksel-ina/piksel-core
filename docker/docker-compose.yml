@@ -8,6 +8,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U piksel_user -d piksel_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   odc:
     build:
@@ -37,11 +42,12 @@ services:
       - ODC_DEFAULT_DB_PASSWORD=passwordPiksel
       - PYTHONPATH=/home/venv/notebooks
       - JUPYTER_ENABLE_LAB=yes
+      - ODC_CONFIG_PATH=/home/venv/datacube.conf
     ports:
       - "8888:8888"
     volumes:
       - ../notebooks:/home/venv/notebooks
-      - ../datacube.conf:/home/jupyter/.datacube.conf
+      - ../datacube.conf:/home/venv/datacube.conf
     depends_on:
       - postgres
       - odc
