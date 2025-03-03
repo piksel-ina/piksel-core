@@ -1,11 +1,11 @@
-# Use a GDAL image from OSGeo as the base
+# Build stage
 ARG GDAL_VERSION=ubuntu-small-3.10.2
-FROM ghcr.io/osgeo/gdal:${GDAL_VERSION}
+FROM ghcr.io/osgeo/gdal:${GDAL_VERSION} AS builder
+WORKDIR /app
 
-# Set noninteractive mode for apt-get to avoid prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies needed for building and running ODC
+# Install build dependencies
 RUN apt-get update && apt-get install -y \
       python3-full \
       python3-dev \
@@ -14,52 +14,25 @@ RUN apt-get update && apt-get install -y \
       curl \
       ca-certificates \
       build-essential \
-      postgresql-client \
       libpq-dev \
-    && apt-get autoclean \
+    && apt-get clean \
     && rm -rf /var/lib/{apt,dpkg,cache,log}
 
-# Disable SSL verification for Git (not recommended for production)
-ENV GIT_SSL_NO_VERIFY true
-
-# Create a Python virtual environment and upgrade pip
-RUN bash -c "python3 -m venv /home/venv && source /home/venv/bin/activate && pip install --upgrade pip"
+# Create and activate virtual environment
+RUN python3 -m venv /home/venv
 ENV PATH="/home/venv/bin:$PATH"
 
-# Configure pip to trust specific hosts
-RUN pip config --global set global.trusted-host "pypi.org files.pythonhosted.org"
+COPY docker/odc/requirements.txt /app/requirements.txt
 
-# Install Python packages (within the virtual environment)   
+# Install Python packages
 RUN pip install --break-system-packages \
     --trusted-host pypi.org \
     --trusted-host files.pythonhosted.org \
     --no-cache-dir \
-    odc-stac \
-    odc-geo \
-    odc-cloud[ASYNC] \
-    odc-dscache \
-    boto3 \
-    importlib_resources \
-    psycopg2-binary \
-    lark \
-    sqlalchemy \
-    alembic \
-    geoalchemy2 \
-    antimeridian \
-    jsonschema \
-    datadog \
-    boltons \
-    cattrs \
-    ciso8601 \
-    urlpath \
-    click \
-    fsspec \
-    pystac-client>=0.2.0 \
-    toolz \
-    pyyaml \
-    scipy \
-    deprecat && \
-    pip install --break-system-packages \
+    -r requirements.txt
+
+# Install ODC packages from GitHub
+RUN pip install --break-system-packages \
     --trusted-host pypi.org \
     --trusted-host files.pythonhosted.org \
     --no-cache-dir \
@@ -68,17 +41,34 @@ RUN pip install --break-system-packages \
     "git+https://github.com/opendatacube/odc-tools.git@develop-1.9#subdirectory=apps/dc_tools" \
     "git+https://github.com/opendatacube/eo-datasets.git@integrate-1.9"
 
-# Copy the configuration file
-COPY ../datacube.conf /root/.datacube.conf
+# Runtime stage
+FROM ghcr.io/osgeo/gdal:${GDAL_VERSION}
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
-# Copy the entrypoint script into the image
-COPY docker/odc/entrypoint.sh /home/app/entrypoint.sh
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y \
+      python3-minimal \
+      postgresql-client \
+    && apt-get clean \
+    && rm -rf /var/lib/{apt,dpkg,cache,log}
 
-# Set working directory
-WORKDIR /home/app
+# Copy virtual environment from builder
+COPY --from=builder /home/venv /home/venv
+ENV PATH="/home/venv/bin:$PATH"
 
-# Set the entrypoint so that it runs before the CMD
-ENTRYPOINT ["/home/app/entrypoint.sh"]
+# Copy configuration to root's home
+COPY datacube.conf /root/.datacube.conf
 
-# Set the default command
-CMD ["stac-to-dc"]
+# Create user first
+RUN useradd -m -s /bin/bash appuser
+
+# Then copy configuration to appuser's home and set permissions
+COPY datacube.conf /home/appuser/.datacube.conf
+RUN chown appuser:appuser /home/appuser/.datacube.conf
+
+USER appuser
+WORKDIR /home/appuser/app
+
+CMD ["python", "-c", "import datacube; print('ODC container ready')"]

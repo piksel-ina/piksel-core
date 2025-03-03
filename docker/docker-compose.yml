@@ -29,6 +29,7 @@ services:
     depends_on:
       - postgres
     restart: always
+    command: tail -f /dev/null
 
   jupyter:
     build:

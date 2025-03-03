@@ -1,0 +1,30 @@
+# Core ODC packages
+
+odc-geo~=0.4.9
+odc-stac~=0.3.11
+odc-cloud[ASYNC]~=0.2.5
+odc-dscache~=0.2.3
+setuptools
+
+# Additional dependencies for stac-to-dc
+boto3
+psycopg2-binary
+lark
+sqlalchemy
+alembic
+geoalchemy2
+antimeridian
+jsonschema
+datadog
+boltons
+cattrs
+ciso8601
+urlpath
+click
+fsspec
+pystac-client>=0.2.0
+toolz
+pyyaml
+scipy
+deprecat
+importlib_resources

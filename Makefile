@@ -52,12 +52,15 @@ help:
 	@echo "       CollectionS2  (default: $(CollectionS2))"
 	@echo ""
 	@echo "To override these defaults, pass new values as variables."
-	@echo "For example: ${GREEN}make index-sentinel2a BboxS2='115,-10,117,-8' DateS2='2021-01-01/2021-01-31'${NC}"
+	@echo "For example: ${GREEN}make index-sentinel2a Bbox='115,-10,117,-8' Date='2021-01-01/2021-01-31'${NC}"
 	@echo ""
 	@echo "${GREEN}Utility Commands:${NC}"
 	@echo "  make bash-odc      - Open a shell in the ODC container"
 	@echo "  make bash-jupyter  - Open a shell in the Jupyter container"
 	@echo "  make jupyter-token - Get the Jupyter token"
+	@echo "  make compile-deps   - Compile dependencies from requirements.in to requirements.txt"
+	@echo "  make update-deps    - Update all dependencies to their latest versions"
+	@echo "  make verify-deps    - Verify dependencies are correctly installed"
 
 # Docker commands
 .PHONY: build up stop down rmvol restart ps logs clean
@@ -178,9 +181,9 @@ rm-product:
 
 
 # Indexing commands
-# Default parameters for Sentinel-2 L2A indexing
-BboxS2 ?= 114,-9,116,-7
-DateS2 ?= 2020-01-01/2020-03-31
+# Default parameters for indexing
+Bbox ?= 114,-9,116,-7
+Date ?= 2020-01-01/2020-03-31
 CollectionS2 ?= sentinel-2-l2a
 
 # Default parameters for LSX indexing (adjust these as appropriate)
@@ -194,9 +197,9 @@ index-sentinel2a:
 	@echo "$(BLUE)Indexing Sentinel-2 L2A data...$(NC)"
 	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec odc \
 	  stac-to-dc --catalog-href='https://earth-search.aws.element84.com/v1/' \
-	            --bbox='$(BboxS2)' \
-	            --collections='$(CS2)' \
-	            --datetime='$(DateS2)' \
+	            --bbox='$(Bbox)' \
+	            --collections='$(CollectionS2)' \
+	            --datetime='$(Date)' \
 	            --rename-product='sentinel_2_l2a'
 
 # index-lsx:
@@ -228,3 +231,30 @@ jupyter-token:
 		echo "${YELLOW}No token found. Authentication may be disabled.${NC}"; \
 		echo "${GREEN}Jupyter URL: http://localhost:8888/${NC}"; \
 	fi
+
+# Dependencies management commands
+.PHONY: compile-deps update-deps verify-deps
+
+compile-deps:
+	@echo "$(BLUE)Compiling dependencies from requirements.in to requirements.txt...$(NC)"
+	@docker run --rm -v $(shell pwd):/app -w /app python:3.12 \
+		bash -c "apt-get update && apt-get install -y libpq-dev && \
+		pip install pip-tools && \
+		pip-compile docker/odc/requirements.in"
+	@echo "$(GREEN)Dependencies compiled successfully!$(NC)"
+
+update-deps:
+	@echo "$(BLUE)Updating all dependencies to their latest versions...$(NC)"
+	@docker run --rm -v $(shell pwd):/app -w /app python:3.12 \
+		bash -c "apt-get update && apt-get install -y libpq-dev && \
+		pip install pip-tools && \
+		pip-compile --upgrade docker/odc/requirements.in"
+	@echo "$(GREEN)Dependencies updated successfully!$(NC)"
+
+verify-deps:
+	@echo "$(BLUE)Verifying dependency installation (dry run)...$(NC)"
+	@docker run --rm -v $(shell pwd):/app -w /app python:3.12 \
+		bash -c 'apt-get update && apt-get install -y libpq-dev gdal-bin libgdal-dev && \
+		echo "\n\033[32mPackages that would be installed:\033[0m" && \
+		pip install --dry-run -r docker/odc/requirements.txt | grep -v "^Requirement already satisfied"'
+	@echo "$(GREEN)Dependencies verified!$(NC)"

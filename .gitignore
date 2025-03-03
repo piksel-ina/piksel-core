@@ -9,3 +9,6 @@ __pycache__/
 *.pyz
 *.pywz
 *.pyc
+.venv/
+venv/
+ENV/
