@@ -4,9 +4,11 @@
 # Settings
 COMPOSE_FILE := docker/docker-compose.yml
 PROJECT_NAME := piksel
-# Default Data Cube environment (can be "main" or "legacy")
-ENVIRONMENT ?= default
+ENVIRONMENT ?= myenv
 EPSG ?= 9468
+
+# Common Docker Compose command with environment variables
+DOCKER_COMPOSE = docker compose --env-file .env -f $(COMPOSE_FILE) -p $(PROJECT_NAME)
 
 # Colors for pretty output
 BLUE=\033[34;1m
@@ -21,6 +23,7 @@ help:
 	@echo ""
 	@echo "${BLUE}Piksel Platform Management Commands${NC}"
 	@echo "${GREEN}Basic Commands:${NC}"
+	@echo "  make init          - Initialize environment files and configuration"
 	@echo "  make build         - Build all Docker containers"
 	@echo "  make up            - Start all services"
 	@echo "  make stop          - Stop all project containers (without removing them)"
@@ -30,6 +33,11 @@ help:
 	@echo "  make ps            - Show service status"
 	@echo "  make logs          - View logs from all services"
 	@echo "  make clean         - Prune unused Docker resources"
+	@echo ""
+	@echo "${GREEN}Configuration Commands:${NC}"
+	@echo "  make setup-config  - Generate datacube.conf from template"
+	@echo "  make check-env     - Display environment variables"
+	@echo "  make check-config  - Check datacube configuration"
 	@echo ""
 	@echo "${GREEN}Database Commands:${NC}"
 	@echo "  make init-db          - Initialize the ODC database"
@@ -47,9 +55,8 @@ help:
 	@echo ""
 	@echo "${GREEN}Indexing Commands:${NC}"
 	@echo "  make index-sentinel2a      - Index Sentinel-2 L2A data with the following defaults:"
-	@echo "       BboxS2        (default: $(BboxS2))"
-	@echo "       DateS2        (default: $(DateS2))"
-	@echo "       CollectionS2  (default: $(CollectionS2))"
+	@echo "                               Bbox  (default: $(Bbox))"
+	@echo "                               Date  (default: $(Date))"
 	@echo ""
 	@echo "To override these defaults, pass new values as variables."
 	@echo "For example: ${GREEN}make index-sentinel2a Bbox='115,-10,117,-8' Date='2021-01-01/2021-01-31'${NC}"
@@ -58,44 +65,76 @@ help:
 	@echo "  make bash-odc      - Open a shell in the ODC container"
 	@echo "  make bash-jupyter  - Open a shell in the Jupyter container"
 	@echo "  make jupyter-token - Get the Jupyter token"
-	@echo "  make compile-deps   - Compile dependencies from requirements.in to requirements.txt"
-	@echo "  make update-deps    - Update all dependencies to their latest versions"
-	@echo "  make verify-deps    - Verify dependencies are correctly installed"
+	@echo "  make compile-deps  - Compile dependencies from requirements.in to requirements.txt"
+	@echo "  make update-deps   - Update all dependencies to their latest versions"
+	@echo "  make verify-deps   - Verify dependencies are correctly installed"
 
 # Docker commands
-.PHONY: build up stop down rmvol restart ps logs clean
+.PHONY: build up stop down rmvol restart ps logs clean setup-config init check-env check-config
 build:
 	@echo "$(BLUE)Building Piksel containers...$(NC)"
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) build
+	$(DOCKER_COMPOSE) build
 
-up:
+setup-config:
+	@echo "$(BLUE)Generating datacube.conf from template...$(NC)"
+	@chmod +x scripts/generate_config.sh
+	@export $$(grep -v '^#' .env | xargs) && ./scripts/generate_config.sh
+	@echo "$(GREEN)Configuration generated successfully!$(NC)"
+
+init:
+	@if [ ! -f .env ]; then \
+		cp .env.example .env; \
+		echo "$(GREEN)Created .env file from template. Please edit with your local settings.$(NC)"; \
+	else \
+		echo "$(YELLOW).env file already exists. Skipping.$(NC)"; \
+	fi
+	@$(MAKE) setup-config
+
+check-env:
+	@echo "$(BLUE)Environment variables:$(NC)"
+	@grep -v '^#' .env | sort
+	@echo "$(BLUE)Docker environment check:$(NC)"
+	@$(DOCKER_COMPOSE) config | grep -E 'POSTGRES_|JUPYTER_PORT'
+
+check-config:
+	@echo "$(BLUE)Checking datacube configuration:$(NC)"
+	@if [ -f datacube.conf ]; then \
+		cat datacube.conf; \
+	else \
+		echo "$(RED)datacube.conf not found!$(NC)"; \
+	fi
+	@echo "\n$(BLUE)Environment variables in .env:$(NC)"
+	@grep -v '^#' .env | sort
+
+up: setup-config
 	@echo "$(BLUE)Starting Piksel services...$(NC)"
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d
-	@echo "$(GREEN)Services started. Jupyter is available at http://localhost:8888$(NC)"
+	@export $$(grep -v '^#' .env | xargs) && \
+	$(DOCKER_COMPOSE) up -d && \
+	echo "$(GREEN)Services started. Jupyter is available at http://localhost:$$JUPYTER_PORT$(NC)"
 
 stop:
 	@echo "$(BLUE)Stopping Piksel services...$(NC)"
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) stop
+	$(DOCKER_COMPOSE) stop
 
 down:
 	@echo "$(BLUE)Stopping and removing Piksel containers (preserving volumes)...$(NC)"
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) down
+	$(DOCKER_COMPOSE) down
 
 rmvol:
 	@echo "$(BLUE)Stopping and removing Piksel containers and volumes...$(NC)"
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) down -v
+	$(DOCKER_COMPOSE) down -v
 
 restart:
 	@echo "$(BLUE)Restarting Piksel services...$(NC)"
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) restart
+	$(DOCKER_COMPOSE) restart
 
 ps:
 	@echo "$(BLUE)Piksel service status:$(NC)"
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) ps
+	$(DOCKER_COMPOSE) ps
 
 logs:
 	@echo "$(BLUE)Viewing Piksel logs (press Ctrl+C to exit)...$(NC)"
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) logs -f
+	$(DOCKER_COMPOSE) logs -f
 
 clean:
 	@echo $(YELLOW)"WARNING: This will prune ALL unused Docker resources."$(NC)
@@ -111,54 +150,64 @@ clean:
 .PHONY: init-db reset-db spindex-create spindex-update backup-db psql
 init-db:
 	@echo "$(BLUE)Initializing ODC database for environment '$(ENVIRONMENT)'...$(NC)"
-	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec postgres psql -U piksel_user -d piksel_db -c "CREATE EXTENSION IF NOT EXISTS postgis;"
-	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec odc datacube -v system init
-	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec odc datacube -v system check
+	@echo "$(BLUE)1. Checking PostgreSQL connection...$(NC)"
+	@$(DOCKER_COMPOSE) exec postgres psql -U piksel_user -d piksel_db -c "SELECT version();" || { echo "$(RED)Failed to connect to PostgreSQL$(NC)"; exit 1; }
+	@echo "$(BLUE)2. Creating PostGIS extension...$(NC)"
+	@$(DOCKER_COMPOSE) exec postgres psql -U piksel_user -d piksel_db -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+	@echo "$(BLUE)3. Initializing ODC system...$(NC)"
+	@$(DOCKER_COMPOSE) exec odc bash -c "datacube -v system init"
+	@echo "$(BLUE)4. Verifying ODC system...$(NC)"
+	@$(DOCKER_COMPOSE) exec odc bash -c "datacube -v system check"
+	@echo "$(BLUE)5. Listing available products (if any)...$(NC)"
+	@$(DOCKER_COMPOSE) exec odc bash -c "datacube product list" || echo "$(YELLOW)No products available yet. This is normal for a fresh installation.$(NC)"
+	@echo "$(GREEN)ODC database initialization successful!$(NC)"
+
+
 
 reset-db:
 	@echo "$(RED)WARNING: This will destroy all data in the ODC database for environment '$(ENVIRONMENT)'!$(NC)"
 	@read -p "Are you sure you want to proceed? [y/N] " confirm; \
 	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
 		echo "$(BLUE)Dropping public schema in PostgreSQL...$(NC)"; \
-		docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec postgres psql -U piksel_user piksel_db -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"; \
+		$(DOCKER_COMPOSE) exec postgres psql -U piksel_user piksel_db -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"; \
 		echo "$(BLUE)Reinitializing ODC database for environment '$(ENVIRONMENT)'...$(NC)"; \
-		docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec odc datacube -E $(ENVIRONMENT) system init && \
-		docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec odc datacube -E $(ENVIRONMENT) spindex create 9468 && \
-		docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec odc datacube -E $(ENVIRONMENT) spindex update 9468; \
+		$(DOCKER_COMPOSE) exec odc datacube -E $(ENVIRONMENT) system init && \
+		$(DOCKER_COMPOSE) exec odc datacube -E $(ENVIRONMENT) spindex create 9468 && \
+		$(DOCKER_COMPOSE) exec odc datacube -E $(ENVIRONMENT) spindex update 9468; \
 	else \
 		echo "$(BLUE)Database reset cancelled$(NC)"; \
 	fi
 
 spindex-create:
 	@echo "$(BLUE)Adding spatial index for EPSG:$(EPSG)...$(NC)"
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec odc datacube spindex create $(EPSG)
+	$(DOCKER_COMPOSE) exec odc datacube spindex create $(EPSG)
 
 spindex-update:
 	@echo "$(BLUE)Updating spatial index for EPSG:$(EPSG)...$(NC)"
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec odc datacube spindex update $(EPSG)
+	$(DOCKER_COMPOSE) exec odc datacube spindex update $(EPSG)
 
 backup-db:
 	@echo "$(BLUE)Backing up ODC database...$(NC)"
 	@mkdir -p ./backups
 	@timestamp=$$(date +%Y%m%d_%H%M%S); \
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec -T postgres pg_dump -U piksel_user piksel_db | gzip > ./backups/piksel_db_$$timestamp.sql.gz; \
+	$(DOCKER_COMPOSE) exec -T postgres pg_dump -U piksel_user piksel_db | gzip > ./backups/piksel_db_$$timestamp.sql.gz; \
 	echo "$(GREEN)Database backup created in ./backups$(NC)"
 
 psql:
 	@echo "$(BLUE)Connecting to PostgreSQL database...$(NC)"
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec postgres psql -U piksel_user -d piksel_db
+	$(DOCKER_COMPOSE) exec postgres psql -U piksel_user -d piksel_db
 
 # Product commands
 .PHONY: list-products all-products add-product rm-product
 list-products:
 	@echo "${BLUE}Listing ODC products:${NC}"
-	docker-compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec odc datacube product list
+	$(DOCKER_COMPOSE) exec odc datacube product list
 
 all-products:
 	@echo "${BLUE}Adding all product definitions...${NC}"
 	@for product in products/*.yaml; do \
 		echo "${YELLOW}Adding product: $$product${NC}"; \
-		docker-compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec -T odc bash -c "datacube product add /home/venv/products/$$(basename $$product)" || echo "${RED}Failed to add product: $$product${NC}"; \
+		$(DOCKER_COMPOSE) exec -T odc bash -c "datacube product add /home/venv/products/$$(basename $$product)" || echo "${RED}Failed to add product: $$product${NC}"; \
 	done
 
 add-product:
@@ -167,7 +216,7 @@ add-product:
 		exit 1; \
 	fi
 	@echo "${BLUE}Adding product definition: $(P)${NC}"
-	@docker-compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec -T odc bash -c "datacube product add /home/venv/products/$(P)"
+	$(DOCKER_COMPOSE) exec -T odc bash -c "datacube product add /home/venv/products/$(P)"
 	
 
 rm-product:
@@ -176,7 +225,7 @@ rm-product:
 		exit 1; \
 	fi
 	@echo "$(BLUE)Removing product '$(P)' using SQL script...$(NC)"
-	@cat scripts/delete_odc_product.sql | docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec -T postgres \
+	@cat scripts/delete_odc_product.sql | $(DOCKER_COMPOSE) exec -T postgres \
 		psql -U piksel_user -d piksel_db -v product_name="$(P)"
 
 
@@ -195,36 +244,26 @@ CollectionLs ?= landsat-8
 
 index-sentinel2a:
 	@echo "$(BLUE)Indexing Sentinel-2 L2A data...$(NC)"
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec odc \
+	$(DOCKER_COMPOSE) exec odc \
 	  stac-to-dc --catalog-href='https://earth-search.aws.element84.com/v1/' \
 	            --bbox='$(Bbox)' \
 	            --collections='$(CollectionS2)' \
 	            --datetime='$(Date)' \
 	            --rename-product='sentinel_2_l2a'
 
-# index-lsx:
-# 	@echo "$(BLUE)Indexing LSX data...$(NC)"
-# 	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec odc \
-# 	  stac-to-dc --catalog-href='https://earth-search.aws.element84.com/v1/' \
-# 	            --bbox='$(BboxLs)' \
-# 	            --collections='$(CLs)' \
-# 	            --datetime='$(DateLs)' \
-# 	            --rename-product='lsx'
-
-
 # Utility commands
 .PHONY: bash-odc bash-jupyter jupyter-token
 bash-odc:
 	@echo "${BLUE}Opening shell in ODC container...${NC}"
-	docker-compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec odc bash
+	$(DOCKER_COMPOSE) exec odc bash
 
 bash-jupyter:
 	@echo "${BLUE}Opening shell in Jupyter container...${NC}"
-	docker-compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec jupyter bash
+	$(DOCKER_COMPOSE) exec jupyter bash
 
 jupyter-token:
 	@echo "${BLUE}Getting Jupyter token...${NC}"
-	@token=$$(docker-compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec -T jupyter jupyter server list | grep -oP "token=\K[^[:space:]]*" || echo "No token found"); \
+	@token=$$($(DOCKER_COMPOSE) exec -T jupyter jupyter server list | grep -oP "token=\K[^[:space:]]*" || echo "No token found"); \
 	if [ "$$token" != "No token found" ]; then \
 		echo "${GREEN}Jupyter URL: http://localhost:8888/?token=$$token${NC}"; \
 	else \

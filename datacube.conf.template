@@ -1,0 +1,7 @@
+[default]
+index_driver: postgis
+db_hostname: ${POSTGRES_HOST}
+db_port: ${POSTGRES_PORT}
+db_database: ${POSTGRES_DB}
+db_username: ${POSTGRES_USER}
+db_password: ${POSTGRES_PASSWORD}
