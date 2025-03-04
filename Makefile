@@ -62,12 +62,20 @@ help:
 	@echo "For example: ${GREEN}make index-sentinel2a Bbox='115,-10,117,-8' Date='2021-01-01/2021-01-31'${NC}"
 	@echo ""
 	@echo "${GREEN}Utility Commands:${NC}"
-	@echo "  make bash-odc      - Open a shell in the ODC container"
-	@echo "  make bash-jupyter  - Open a shell in the Jupyter container"
-	@echo "  make jupyter-token - Get the Jupyter token"
-	@echo "  make compile-deps  - Compile dependencies from requirements.in to requirements.txt"
-	@echo "  make update-deps   - Update all dependencies to their latest versions"
-	@echo "  make verify-deps   - Verify dependencies are correctly installed"
+	@echo "  make bash-odc               - Open a shell in the ODC container"
+	@echo "  make bash-jupyter           - Open a shell in the Jupyter container"
+	@echo "  make jupyter-token          - Get the Jupyter token"
+	@echo "  make compile-deps           - Compile dependencies from requirements.in to requirements.txt"
+	@echo "  make update-deps            - Update all dependencies to their latest versions"
+	@echo "  make verify-deps            - Verify dependencies are correctly installed"
+	@echo ""
+	@echo "${GREEN}Test Commands:${NC}"
+	@echo "  make compile-test-deps      - Compile test dependencies from requirements-test.in"
+	@echo "  make test-container         - Build the test container"
+	@echo "  make test                   - Run all tests"
+	@echo "  make test-unit              - Run unit tests only"
+	@echo "  make test-integration       - Run integration tests only"
+	@echo "  make test-coverage          - Run tests with coverage report"
 
 # Docker commands
 .PHONY: build up stop down rmvol restart ps logs clean setup-config init check-env check-config
@@ -272,7 +280,7 @@ jupyter-token:
 	fi
 
 # Dependencies management commands
-.PHONY: compile-deps update-deps verify-deps
+.PHONY: compile-deps update-deps verify-deps compile-test-deps test-container
 
 compile-deps:
 	@echo "$(BLUE)Compiling dependencies from requirements.in to requirements.txt...$(NC)"
@@ -297,3 +305,36 @@ verify-deps:
 		echo "\n\033[32mPackages that would be installed:\033[0m" && \
 		pip install --dry-run -r docker/odc/requirements.txt | grep -v "^Requirement already satisfied"'
 	@echo "$(GREEN)Dependencies verified!$(NC)"
+
+compile-test-deps:
+	@echo "$(BLUE)Compiling test dependencies...$(NC)"
+	@docker run --rm -v $(shell pwd):/app -w /app python:3.12 \
+		bash -c "apt-get update && apt-get install -y libpq-dev && \
+		pip install pip-tools && \
+		pip-compile docker/test/requirements-test.in -o docker/test/requirements-test.txt"
+	@echo "$(GREEN)Test dependencies compiled successfully!$(NC)"
+
+test-container:
+	@echo "$(BLUE)Building test container...$(NC)"
+	docker build -f docker/test/Dockerfile -t piksel-test .
+
+
+.PHONY: test test-unit test-integration test-coverage
+
+# Run tests using the test container
+test: test-container
+	@echo "$(BLUE)Running all tests...$(NC)"
+	docker run --network $(PROJECT_NAME)_default piksel-test pytest test/
+
+test-unit: test-container
+	@echo "$(BLUE)Running unit tests...$(NC)"
+	docker run --network $(PROJECT_NAME)_default piksel-test pytest test/unit -v
+
+test-integration: test-container
+	@echo "$(BLUE)Running integration tests...$(NC)"
+	docker run --network $(PROJECT_NAME)_default piksel-test pytest test/integration -v
+
+test-coverage: test-container
+	@echo "$(BLUE)Running tests with coverage...$(NC)"
+	docker run --network $(PROJECT_NAME)_default piksel-test pytest --cov=. --cov-report=xml --cov-report=term test/
+
