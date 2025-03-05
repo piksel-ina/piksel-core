@@ -5,6 +5,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - piksel-net
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always
@@ -23,6 +25,8 @@ services:
       - ODC_DEFAULT_DB_DATABASE=${POSTGRES_DB}
       - ODC_DEFAULT_DB_HOSTNAME=${POSTGRES_HOST}
       - ODC_DEFAULT_DB_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      - piksel-net
     volumes:
       - ../datacube.conf:/root/.datacube.conf
       - ../products:/home/venv/products
@@ -46,6 +50,8 @@ services:
       - ODC_CONFIG_PATH=${ODC_CONFIG_PATH}
     ports:
       - "${JUPYTER_PORT}:8888"
+    networks:
+      - piksel-net
     volumes:
       - ../notebooks:/home/venv/notebooks
       - ../datacube.conf:/home/venv/datacube.conf
@@ -58,6 +64,10 @@ services:
       timeout: 10s
       retries: 3
     restart: always
+
+networks:
+  piksel-net:
+    name: piksel-net
 
 volumes:
   postgres_data:
