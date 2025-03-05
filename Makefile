@@ -324,17 +324,17 @@ test-container:
 # Run tests using the test container
 test: test-container
 	@echo "$(BLUE)Running all tests...$(NC)"
-	docker run --network $(PROJECT_NAME)_default piksel-test pytest test/
+	docker run --network piksel-net piksel-test pytest test/
 
 test-unit: test-container
 	@echo "$(BLUE)Running unit tests...$(NC)"
-	docker run --network $(PROJECT_NAME)_default piksel-test pytest test/unit -v
+	docker run --network piksel-net piksel-test pytest test/unit -v
 
 test-integration: test-container
 	@echo "$(BLUE)Running integration tests...$(NC)"
-	docker run --network $(PROJECT_NAME)_default piksel-test pytest test/integration -v
+	docker run --network piksel-net piksel-test pytest test/integration -v
 
 test-coverage: test-container
 	@echo "$(BLUE)Running tests with coverage...$(NC)"
-	docker run --network $(PROJECT_NAME)_default piksel-test pytest --cov=. --cov-report=xml --cov-report=term test/
+	docker run --network piksel-net piksel-test pytest --cov=. --cov-report=xml --cov-report=term test/
 
