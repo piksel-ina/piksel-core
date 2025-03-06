@@ -4,11 +4,13 @@
 # Settings
 COMPOSE_FILE := docker/docker-compose.yml
 PROJECT_NAME := piksel
-ENVIRONMENT ?= myenv
+TEST_COMPOSE_FILE := docker/docker-compose.test.yml
+ENVIRONMENT ?= default
 EPSG ?= 9468
 
 # Common Docker Compose command with environment variables
 DOCKER_COMPOSE = docker compose --env-file .env -f $(COMPOSE_FILE) -p $(PROJECT_NAME)
+DOCKER_COMPOSE_TEST = docker compose --env-file .env.test -f $(TEST_COMPOSE_FILE) -p $(PROJECT_NAME)-test
 
 # Colors for pretty output
 BLUE=\033[34;1m
@@ -69,13 +71,18 @@ help:
 	@echo "  make update-deps            - Update all dependencies to their latest versions"
 	@echo "  make verify-deps            - Verify dependencies are correctly installed"
 	@echo ""
+	@echo "${GREEN}Test Environment Commands:${NC}"
+	@echo "  make test-up       - Start the test environment containers"
+	@echo "  make test-down     - Stop and remove test environment containers"
+	@echo "  make test-clean    - Clean up the test environment containers and volumes"
+	@echo "  make test-run      - Run integration tests in the test environment"
+	@echo ""
 	@echo "${GREEN}Test Commands:${NC}"
-	@echo "  make compile-test-deps      - Compile test dependencies from requirements-test.in"
-	@echo "  make test-container         - Build the test container"
-	@echo "  make test                   - Run all tests"
-	@echo "  make test-unit              - Run unit tests only"
-	@echo "  make test-integration       - Run integration tests only"
-	@echo "  make test-coverage          - Run tests with coverage report"
+	@echo "  make test          - Run all tests"
+	@echo "  make test-unit     - Run unit tests only"
+	@echo "  make test-integration - Run integration tests only"
+	@echo ""
+
 
 # Docker commands
 .PHONY: build up stop down rmvol restart ps logs clean setup-config init check-env check-config
@@ -306,35 +313,54 @@ verify-deps:
 		pip install --dry-run -r docker/odc/requirements.txt | grep -v "^Requirement already satisfied"'
 	@echo "$(GREEN)Dependencies verified!$(NC)"
 
-compile-test-deps:
-	@echo "$(BLUE)Compiling test dependencies...$(NC)"
-	@docker run --rm -v $(shell pwd):/app -w /app python:3.12 \
-		bash -c "apt-get update && apt-get install -y libpq-dev && \
-		pip install pip-tools && \
-		pip-compile docker/test/requirements-test.in -o docker/test/requirements-test.txt"
-	@echo "$(GREEN)Test dependencies compiled successfully!$(NC)"
+# Test Environment Setup Commands
+.PHONY: test-up test-down test-clean test-run
 
-test-container:
-	@echo "$(BLUE)Building test container...$(NC)"
-	docker build -f docker/test/Dockerfile -t piksel-test .
+test-up:
+	@echo "${BLUE}Starting test environment containers...${NC}"
+	@$(DOCKER_COMPOSE_TEST) up -d
+	@echo "${GREEN}Test environment is running.${NC}"
 
+test-down:
+	@echo "${BLUE}Stopping and removing test environment containers...${NC}"
+	@$(DOCKER_COMPOSE_TEST) down
+	@echo "${GREEN}Test environment stopped and removed.${NC}"
 
-.PHONY: test test-unit test-integration test-coverage
+test-clean:
+	@echo "${BLUE}Cleaning up test environment containers and volumes...${NC}"
+	@$(DOCKER_COMPOSE_TEST) down -v
+	@echo "${GREEN}Test environment cleaned up.${NC}"
 
-# Run tests using the test container
-test: test-container
+test-run: test-up
+	@echo "${BLUE}Running integration tests in the test environment...${NC}"
+	@.venv-test/bin/python -m pytest -xvs test/integration/
+	@$(MAKE) test-down
+	@echo "${GREEN}Integration tests completed.${NC}"
+
+# Test commands
+.PHONY: test test-unit test-integration test-venv
+
+# Create/update test virtual environment
+test-venv:
+	@echo "$(BLUE)Creating/updating test virtual environment...$(NC)"
+	@python3 -m venv .venv-test
+	@.venv-test/bin/pip install --upgrade pip
+	@.venv-test/bin/pip install pytest pytest-cov python-dotenv docker psycopg2-binary datacube pytest-dependency
+	@echo "$(GREEN)Test virtual environment ready at .venv-test$(NC)"
+
+# Run tests using the virtual environment
+test: test-venv
 	@echo "$(BLUE)Running all tests...$(NC)"
-	docker run --network piksel-net piksel-test pytest test/
+	@.venv-test/bin/python -m pytest -xvs test/
 
-test-unit: test-container
+test-unit: test-venv
 	@echo "$(BLUE)Running unit tests...$(NC)"
-	docker run --network piksel-net piksel-test pytest test/unit -v
+	@.venv-test/bin/python -m pytest -xvs test/unit/
 
-test-integration: test-container
+test-integration: build up test-venv
 	@echo "$(BLUE)Running integration tests...$(NC)"
-	docker run --network piksel-net piksel-test pytest test/integration -v
-
-test-coverage: test-container
-	@echo "$(BLUE)Running tests with coverage...$(NC)"
-	docker run --network piksel-net piksel-test pytest --cov=. --cov-report=xml --cov-report=term test/
-
+	@.venv-test/bin/python -m pytest -xvs test/integration/
+	
+test-coverage: test-venv
+	@echo "$(BLUE)Running tests with coverage reporting...$(NC)"
+	@.venv-test/bin/python -m pytest -xvs --cov=src --cov-report=term --cov-report=html:coverage test/
