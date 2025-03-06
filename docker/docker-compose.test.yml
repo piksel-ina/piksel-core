@@ -1,0 +1,44 @@
+services:
+  postgres-test:
+    image: postgis/postgis:16-3.5
+    container_name: postgres-test
+    environment:
+      - POSTGRES_USER=test_user
+      - POSTGRES_PASSWORD=test_password
+      - POSTGRES_DB=test_db
+    ports:
+      - "5432:5432"
+    networks:
+      - piksel-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d test_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  odc-test:
+    build:
+      context: ../
+      dockerfile: docker/odc/Dockerfile
+    container_name: odc-test
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    environment:
+      - ODC_DEFAULT_DB_USERNAME=test_user
+      - ODC_DEFAULT_DB_DATABASE=test_db
+      - ODC_DEFAULT_DB_HOSTNAME=postgres-test
+      - ODC_DEFAULT_DB_PASSWORD=test_password
+    networks:
+      - piksel-net
+    command: tail -f /dev/null
+    healthcheck:
+      test: ["CMD", "datacube", "system", "check"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+networks:
+  piksel-net:
+    external: true

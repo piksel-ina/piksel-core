@@ -11,5 +11,7 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+.env.test
+.venv-test
 ENV/
 datacube.conf

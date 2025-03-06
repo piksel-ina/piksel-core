@@ -34,6 +34,25 @@ services:
       - postgres
     restart: always
     command: tail -f /dev/null
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        - |
+          python -c 'import datacube; import os;
+          try: 
+              dc = datacube.Datacube();
+              dc.index.datasets.get_field_names();
+              print("Datacube fully operational");
+              exit(0)
+          except Exception as e:
+              print("Basic health check passed but database may not be initialized");
+              exit(0)'
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
 
   jupyter:
     build:

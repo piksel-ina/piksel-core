@@ -71,4 +71,4 @@ RUN chown appuser:appuser /home/appuser/.datacube.conf
 USER appuser
 WORKDIR /home/appuser/app
 
-CMD ["python", "-c", "import datacube; print('ODC container ready')"]
+CMD ["tail", "-f", "/dev/null"]

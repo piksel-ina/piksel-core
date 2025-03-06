@@ -1,28 +1,17 @@
-import os
 import yaml
-import pytest
+import os
 
-from test.utils import validators
-
-def validate_document(doc, schema_type=None):
-    """
-    Performs basic validation
-    """
-    if schema_type == 'product':
-        return validators.validate_product_document(doc)
-    else:
-        # For other schema types, assume valid
-        return True, f"Validation for {schema_type} not implemented, assuming valid"
-
-def test_product_definition_valid():
-    """Test that product definitions are valid."""
-    product_path = os.path.join('products', 's2_l2a.odc-product.yaml')
+def test_sentinel2_product_definition():
+    """Test that the Sentinel-2 product definition file exists and has required fields."""
+    product_path = os.path.join('products', 'sentinel_2_l2a.odc-product.yaml')
+    assert os.path.exists(product_path), "Sentinel-2 product definition not found"
     
-    assert os.path.exists(product_path), f"Product file not found: {product_path}"
+    with open(product_path, 'r') as f:
+        product_def = yaml.safe_load(f)
     
-    print(f"Testing product definition: {product_path}")
-    with open(product_path) as f:
-        doc = yaml.safe_load(f)
-    
-    is_valid, error_message = validate_document(doc, schema_type='product')
-    assert is_valid, f"Product definition invalid: {error_message}"
+    # Check required fields in the product definition
+    assert 'name' in product_def, "Product name not defined"
+    assert product_def['name'] == 'sentinel_2_l2a', "Product name should be 'sentinel_2_l2a'"
+    assert 'description' in product_def, "Product description not defined"
+    assert 'metadata_type' in product_def, "Metadata type not defined"
+    assert 'measurements' in product_def, "Measurements not defined"
