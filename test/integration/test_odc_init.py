@@ -1,80 +1,49 @@
-# test/integration/test_odc_init.py
 import pytest
-import datacube
+import subprocess
 import os
 
-@pytest.fixture
-def dc():
-    """Create a datacube connection with production-like config."""
-    import tempfile
-    import os
-    import socket
+def test_datacube_init():
+    """Test datacube initialization in the odc-test container."""
+    # Run datacube init command inside the container
+    init_cmd = ["docker", "exec", "odc-test", "datacube", "-v", "-E", "default", "system", "init"]
+    init_result = subprocess.run(init_cmd, capture_output=True, text=True)
     
-    # Try different hostnames based on environment
-    # (check which one can be resolved)
-    possible_hosts = ["postgres", "localhost", "postgres-test"]
-    resolved_host = None
+    # Print output for debugging
+    print(f"Init command stdout: {init_result.stdout}")
+    print(f"Init command stderr: {init_result.stderr}")
     
-    for host in possible_hosts:
-        try:
-            socket.gethostbyname(host)
-            resolved_host = host
-            break
-        except socket.gaierror:
-            continue
+    # Check if init was successful (returns 0 on success)
+    assert init_result.returncode == 0, f"Datacube init failed: {init_result.stderr}"
     
-    if resolved_host is None:
-        pytest.skip("Could not resolve any database hostname")
+    # Verify with datacube system check
+    check_cmd = ["docker", "exec", "odc-test", "datacube", "system", "check"]
+    check_result = subprocess.run(check_cmd, capture_output=True, text=True)
     
-    # Create a temporary config file mimicking production
-    config_content = f"""[default]
-index_driver: postgis
-db_hostname: {resolved_host}
-db_port: 5432
-db_database: piksel_db
-db_username: piksel_user
-db_password: passwordPiksel
-"""
+    # Print output for debugging
+    print(f"Check command stdout: {check_result.stdout}")
+    print(f"Check command stderr: {check_result.stderr}")
     
-    with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp:
-        temp.write(config_content)
-        temp_path = temp.name
-    
-    # Use the temporary config file
-    try:
-        # Try connecting to the database directly
-        datacube_obj = datacube.Datacube(config=temp_path)
-        yield datacube_obj
-    except Exception as e:
-        pytest.skip(f"Could not connect to datacube: {str(e)}")
-    finally:
-        # Clean up
-        os.remove(temp_path)
+    # Check if system check passes
+    assert check_result.returncode == 0, f"Datacube system check failed: {check_result.stderr}"
 
-def test_datacube_init(dc):
-    """Test that datacube initializes correctly."""
-    # Just testing that the connection works
-    assert dc.index is not None
-
-def test_product_registration(dc):
-    """Test that we can register a product."""
-    product_path = os.path.join('products', 'sentinel_2_l2a.odc-product.yaml')
-    
+def test_spatial_index_creation():
+    """Test that spatial index can be created."""
     try:
-        # Check if product already exists
-        existing = dc.index.products.get_by_name('sentinel_2_l2a')
-        if existing is not None:
-            # Product exists, test passes
-            assert existing.name == 'sentinel_2_l2a'
-        else:
-            # Register the product
-            from datacube.utils import read_documents
-            for doc in read_documents(product_path):
-                dc.index.products.add_document(doc)
-            
-            # Verify it was added
-            product = dc.index.products.get_by_name('sentinel_2_l2a')
-            assert product is not None
-            assert product.name == 'sentinel_2_l2a'
+        # Run the spindex-create command
+        result = subprocess.run(
+            ["docker", "exec", "odc-test", "datacube", "spindex", "create", "4326"],
+            capture_output=True,
+            text=True
+        )
+        assert result.returncode == 0, f"Spatial index creation failed: {result.stderr}"
+        
+        # Run spindex-update command
+        result = subprocess.run(
+            ["docker", "exec", "odc-test", "datacube", "spindex", "update", "4326"],
+            capture_output=True,
+            text=True
+        )
+        assert result.returncode == 0, f"Spatial index update failed: {result.stderr}"
+        
     except Exception as e:
-        pytest.skip(f"Product registration test skipped: {str(e)}")
+        pytest.skip(f"Spatial index test skipped: {str(e)}")

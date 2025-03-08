@@ -313,10 +313,23 @@ verify-deps:
 		pip install --dry-run -r docker/odc/requirements.txt | grep -v "^Requirement already satisfied"'
 	@echo "$(GREEN)Dependencies verified!$(NC)"
 
-# Test Environment Setup Commands
-.PHONY: test-up test-down test-clean test-run
+#----------------------------------------------
+# Test Environment Commands
+#----------------------------------------------
+.PHONY: test-build setup-test-env test-up test-down test-clean
 
-test-up:
+test-build:
+	@echo "${BLUE}Building test Docker image...${NC}"
+	@$(DOCKER_COMPOSE_TEST) build --build-arg INCLUDE_TEST_DEPS=true
+	@echo "${GREEN}Test Docker image built.${NC}"
+
+setup-test-env:
+	@echo "${BLUE}Setting up test environment...${NC}"
+	@chmod +x scripts/setup_test_env.sh
+	@scripts/setup_test_env.sh
+	@echo "${GREEN}Test environment setup completed.${NC}"
+
+test-up: setup-test-env test-build
 	@echo "${BLUE}Starting test environment containers...${NC}"
 	@$(DOCKER_COMPOSE_TEST) up -d
 	@echo "${GREEN}Test environment is running.${NC}"
@@ -331,36 +344,31 @@ test-clean:
 	@$(DOCKER_COMPOSE_TEST) down -v
 	@echo "${GREEN}Test environment cleaned up.${NC}"
 
-test-run: test-up
-	@echo "${BLUE}Running integration tests in the test environment...${NC}"
-	@.venv-test/bin/python -m pytest -xvs test/integration/
+#----------------------------------------------
+# Test Execution Commands
+#----------------------------------------------
+.PHONY: test test-unit test-integration test-coverage
+
+test: test-up
+	@echo "${BLUE}Running all tests in Docker container...${NC}"
+	@$(DOCKER_COMPOSE_TEST) exec -T odc-test bash -c "cd /app && python -m pytest -xvs test/"
+	@$(MAKE) test-down
+	@echo "${GREEN}All tests completed.${NC}"
+
+test-unit: test-up
+	@echo "${BLUE}Running unit tests in Docker container...${NC}"
+	@$(DOCKER_COMPOSE_TEST) exec -T odc-test bash -c "cd /app && python -m pytest -xvs test/unit/"
+	@$(MAKE) test-down
+	@echo "${GREEN}Unit tests completed.${NC}"
+
+test-integration: test-up
+	@echo "${BLUE}Running integration tests in Docker container...${NC}"
+	@$(DOCKER_COMPOSE_TEST) exec -T odc-test bash -c "cd /app && python -m pytest -xvs test/integration/"
 	@$(MAKE) test-down
 	@echo "${GREEN}Integration tests completed.${NC}"
 
-# Test commands
-.PHONY: test test-unit test-integration test-venv
-
-# Create/update test virtual environment
-test-venv:
-	@echo "$(BLUE)Creating/updating test virtual environment...$(NC)"
-	@python3 -m venv .venv-test
-	@.venv-test/bin/pip install --upgrade pip
-	@.venv-test/bin/pip install pytest pytest-cov python-dotenv docker psycopg2-binary datacube pytest-dependency
-	@echo "$(GREEN)Test virtual environment ready at .venv-test$(NC)"
-
-# Run tests using the virtual environment
-test: test-venv
-	@echo "$(BLUE)Running all tests...$(NC)"
-	@.venv-test/bin/python -m pytest -xvs test/
-
-test-unit: test-venv
-	@echo "$(BLUE)Running unit tests...$(NC)"
-	@.venv-test/bin/python -m pytest -xvs test/unit/
-
-test-integration: build up test-venv
-	@echo "$(BLUE)Running integration tests...$(NC)"
-	@.venv-test/bin/python -m pytest -xvs test/integration/
-	
-test-coverage: test-venv
-	@echo "$(BLUE)Running tests with coverage reporting...$(NC)"
-	@.venv-test/bin/python -m pytest -xvs --cov=src --cov-report=term --cov-report=html:coverage test/
+test-coverage: test-up
+	@echo "${BLUE}Running tests with coverage in Docker container...${NC}"
+	@$(DOCKER_COMPOSE_TEST) exec -T odc-test bash -c "cd /app && python -m pytest -xvs --cov=src --cov-report=term --cov-report=html:/app/coverage test/"
+	@$(MAKE) test-down
+	@echo "${GREEN}Test coverage completed.${NC}"
