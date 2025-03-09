@@ -4,13 +4,11 @@
 # Settings
 COMPOSE_FILE := docker/docker-compose.yml
 PROJECT_NAME := piksel
-TEST_COMPOSE_FILE := docker/docker-compose.test.yml
 ENVIRONMENT ?= default
-EPSG ?= 9468
+EPSG ?= 4326
 
 # Common Docker Compose command with environment variables
 DOCKER_COMPOSE = docker compose --env-file .env -f $(COMPOSE_FILE) -p $(PROJECT_NAME)
-DOCKER_COMPOSE_TEST = docker compose --env-file .env.test -f $(TEST_COMPOSE_FILE) -p $(PROJECT_NAME)-test
 
 # Colors for pretty output
 BLUE=\033[34;1m
@@ -23,7 +21,7 @@ NC=\033[0m # No Color
 .PHONY: help
 help:
 	@echo ""
-	@echo "${BLUE}Piksel Platform Management Commands${NC}"
+	@echo "${BLUE}Piksel Platform Management Commands ${NC}"
 	@echo "${GREEN}Basic Commands:${NC}"
 	@echo "  make init          - Initialize environment files and configuration"
 	@echo "  make build         - Build all Docker containers"
@@ -60,8 +58,18 @@ help:
 	@echo "                               Bbox  (default: $(Bbox))"
 	@echo "                               Date  (default: $(Date))"
 	@echo ""
-	@echo "To override these defaults, pass new values as variables."
-	@echo "For example: ${GREEN}make index-sentinel2a Bbox='115,-10,117,-8' Date='2021-01-01/2021-01-31'${NC}"
+	@echo "  To override these defaults, pass new values as variables."
+	@echo "  For example: ${GREEN}make index-sentinel2a Bbox='115,-10,117,-8' Date='2021-01-01/2021-01-31'${NC}"
+	@echo ""
+	@echo "${GREEN}Testing Commands:${NC}"
+	@echo "  make test                   - Run all tests with minimal output"
+	@echo "  make test-verbose           - Run all tests with detailed output"
+	@echo "  make test-unit              - Run only unit tests"
+	@echo "  make test-integration       - Run only integration tests"
+	@echo "  make test-up                - Start test environment"
+	@echo "  make test-down              - Stop and remove test environment"
+	@echo "  make test-logs              - View test environment logs"
+	@echo "  make test-deps              - Install test dependencies"
 	@echo ""
 	@echo "${GREEN}Utility Commands:${NC}"
 	@echo "  make bash-odc               - Open a shell in the ODC container"
@@ -70,17 +78,6 @@ help:
 	@echo "  make compile-deps           - Compile dependencies from requirements.in to requirements.txt"
 	@echo "  make update-deps            - Update all dependencies to their latest versions"
 	@echo "  make verify-deps            - Verify dependencies are correctly installed"
-	@echo ""
-	@echo "${GREEN}Test Environment Commands:${NC}"
-	@echo "  make test-up       - Start the test environment containers"
-	@echo "  make test-down     - Stop and remove test environment containers"
-	@echo "  make test-clean    - Clean up the test environment containers and volumes"
-	@echo "  make test-run      - Run integration tests in the test environment"
-	@echo ""
-	@echo "${GREEN}Test Commands:${NC}"
-	@echo "  make test          - Run all tests"
-	@echo "  make test-unit     - Run unit tests only"
-	@echo "  make test-integration - Run integration tests only"
 	@echo ""
 
 
@@ -313,62 +310,70 @@ verify-deps:
 		pip install --dry-run -r docker/odc/requirements.txt | grep -v "^Requirement already satisfied"'
 	@echo "$(GREEN)Dependencies verified!$(NC)"
 
-#----------------------------------------------
-# Test Environment Commands
-#----------------------------------------------
-.PHONY: test-build setup-test-env test-up test-down test-clean
+# Test Settings
+TEST_PROJECT_NAME := piksel-test
+TEST_VENV_DIR := .venv
+PYTEST_ARGS ?= -v
 
-test-build:
-	@echo "${BLUE}Building test Docker image...${NC}"
-	@$(DOCKER_COMPOSE_TEST) build --build-arg INCLUDE_TEST_DEPS=true
-	@echo "${GREEN}Test Docker image built.${NC}"
+# Test commands
+.PHONY: test-up test-down test-logs test-ps test test-venv test-deps test-verbose
 
-setup-test-env:
-	@echo "${BLUE}Setting up test environment...${NC}"
-	@chmod +x scripts/setup_test_env.sh
-	@scripts/setup_test_env.sh
-	@echo "${GREEN}Test environment setup completed.${NC}"
+# Start test environment with test project name (creates isolated network)
+test-up: setup-config
+	@echo "$(BLUE)Starting Piksel test services...$(NC)"
+	@export $$(grep -v '^#' .env | xargs) && \
+	docker compose --env-file .env -f $(COMPOSE_FILE) -p $(TEST_PROJECT_NAME) up -d && \
+	echo "$(GREEN)Test services started with project name: $(TEST_PROJECT_NAME)$(NC)"
 
-test-up: setup-test-env test-build
-	@echo "${BLUE}Starting test environment containers...${NC}"
-	@$(DOCKER_COMPOSE_TEST) up -d
-	@echo "${GREEN}Test environment is running.${NC}"
-
+# Stop and remove test services
 test-down:
-	@echo "${BLUE}Stopping and removing test environment containers...${NC}"
-	@$(DOCKER_COMPOSE_TEST) down
-	@echo "${GREEN}Test environment stopped and removed.${NC}"
+	@echo "$(BLUE)Stopping and removing Piksel test containers...$(NC)"
+	docker compose --env-file .env -f $(COMPOSE_FILE) -p $(TEST_PROJECT_NAME) down -v
 
-test-clean:
-	@echo "${BLUE}Cleaning up test environment containers and volumes...${NC}"
-	@$(DOCKER_COMPOSE_TEST) down -v
-	@echo "${GREEN}Test environment cleaned up.${NC}"
+# View logs from test services
+test-logs:
+	@echo "$(BLUE)Viewing Piksel test logs (press Ctrl+C to exit)...$(NC)"
+	docker compose --env-file .env -f $(COMPOSE_FILE) -p $(TEST_PROJECT_NAME) logs -f
 
-#----------------------------------------------
-# Test Execution Commands
-#----------------------------------------------
-.PHONY: test test-unit test-integration test-coverage
+# Create a Python virtual environment for testing
+test-venv:
+	@echo "$(BLUE)Creating Python virtual environment for testing...$(NC)"
+	python3 -m venv $(TEST_VENV_DIR)
+	@echo "$(GREEN)Virtual environment created at $(TEST_VENV_DIR)$(NC)"
+	@echo "$(YELLOW)Activate with: source $(TEST_VENV_DIR)/bin/activate$(NC)"
 
+# Install test dependencies in virtual environment
+test-deps: test-venv
+	@echo "$(BLUE)Installing test dependencies...$(NC)"
+	$(TEST_VENV_DIR)/bin/pip install --upgrade pip
+	$(TEST_VENV_DIR)/bin/pip install pytest pytest-cov python-dotenv pyyaml
+	@echo "$(GREEN)Test dependencies installed$(NC)"
+
+# Run tests (requires virtual environment)
 test: test-up
-	@echo "${BLUE}Running all tests in Docker container...${NC}"
-	@$(DOCKER_COMPOSE_TEST) exec -T odc-test bash -c "cd /app && python -m pytest -xvs test/"
-	@$(MAKE) test-down
-	@echo "${GREEN}All tests completed.${NC}"
+	@echo "$(BLUE)Running tests...$(NC)"
+	@if [ ! -d "$(TEST_VENV_DIR)" ]; then \
+		echo "$(RED)Virtual environment not found. Run 'make test-deps' first.$(NC)"; \
+		exit 1; \
+	fi
+	$(TEST_VENV_DIR)/bin/pytest $(PYTEST_ARGS) tests/
 
 test-unit: test-up
-	@echo "${BLUE}Running unit tests in Docker container...${NC}"
-	@$(DOCKER_COMPOSE_TEST) exec -T odc-test bash -c "cd /app && python -m pytest -xvs test/unit/"
-	@$(MAKE) test-down
-	@echo "${GREEN}Unit tests completed.${NC}"
+	@echo "$(BLUE)Running unit tests...$(NC)"
+	@if [ ! -d "$(TEST_VENV_DIR)" ]; then \
+		echo "$(RED)Virtual environment not found. Run 'make test-deps' first.$(NC)"; \
+		exit 1; \
+	fi
+	$(TEST_VENV_DIR)/bin/pytest $(PYTEST_ARGS) tests/unit
 
 test-integration: test-up
-	@echo "${BLUE}Running integration tests in Docker container...${NC}"
-	@$(DOCKER_COMPOSE_TEST) exec -T odc-test bash -c "cd /app && python -m pytest -xvs test/integration/"
-	@$(MAKE) test-down
-	@echo "${GREEN}Integration tests completed.${NC}"
+	@echo "$(BLUE)Running integration tests...$(NC)"
+	@if [ ! -d "$(TEST_VENV_DIR)" ]; then \
+		echo "$(RED)Virtual environment not found. Run 'make test-deps' first.$(NC)"; \
+		exit 1; \
+	fi
+	$(TEST_VENV_DIR)/bin/pytest $(PYTEST_ARGS) tests/integration
 
-test-coverage: test-up
-	@echo "${BLUE}Running tests with coverage in Docker container...${NC}"
-	@$(DOCKER_COMPOSE_TEST) exec -T odc-test bash -c "cd /app && python -m pytest -xvs --cov=src --cov-report=term --cov-report=html:/app/coverage test/"
-	@$(MAKE) test-down
-	@echo "${GREEN}Test coverage completed.${NC}"
+test-verbose: PYTEST_ARGS=-xvs
+test-verbose: test
+	@echo "$(GREEN)Test complete$(NC)"

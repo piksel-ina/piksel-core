@@ -2,12 +2,13 @@
 import pytest
 import subprocess
 
-def test_spatial_index_creation():
+@pytest.mark.dependency(depends=["test_datacube_init"])
+def test_spatial_index_creation(datacube_environment):
     """Test that spatial index can be created."""
     try:
         # Run the spindex-create command
         result = subprocess.run(
-            ["docker", "exec", "odc", "datacube", "spindex", "create", "9468"],
+            ["docker", "exec", "piksel-test-odc-1", "datacube", "spindex", "create", "4326"],
             capture_output=True,
             text=True
         )
@@ -15,7 +16,7 @@ def test_spatial_index_creation():
         
         # Run spindex-update command
         result = subprocess.run(
-            ["docker", "exec", "odc", "datacube", "spindex", "update", "9468"],
+            ["docker", "exec", "piksel-test-odc-1", "datacube", "spindex", "update", "4326"],
             capture_output=True,
             text=True
         )
