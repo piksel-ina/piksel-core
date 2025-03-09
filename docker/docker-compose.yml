@@ -5,8 +5,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    networks:
-      - piksel-net
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always
@@ -25,8 +23,6 @@ services:
       - ODC_DEFAULT_DB_DATABASE=${POSTGRES_DB}
       - ODC_DEFAULT_DB_HOSTNAME=${POSTGRES_HOST}
       - ODC_DEFAULT_DB_PASSWORD=${POSTGRES_PASSWORD}
-    networks:
-      - piksel-net
     volumes:
       - ../datacube.conf:/root/.datacube.conf
       - ../products:/home/venv/products
@@ -35,24 +31,11 @@ services:
     restart: always
     command: tail -f /dev/null
     healthcheck:
-      test:
-        - CMD
-        - bash
-        - -c
-        - |
-          python -c 'import datacube; import os;
-          try: 
-              dc = datacube.Datacube();
-              dc.index.datasets.get_field_names();
-              print("Datacube fully operational");
-              exit(0)
-          except Exception as e:
-              print("Basic health check passed but database may not be initialized");
-              exit(0)'
+      test: ["CMD", "datacube", "--version"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 20s
+      retries: 5
+      start_period: 10s
 
   jupyter:
     build:
@@ -69,8 +52,6 @@ services:
       - ODC_CONFIG_PATH=${ODC_CONFIG_PATH}
     ports:
       - "${JUPYTER_PORT}:8888"
-    networks:
-      - piksel-net
     volumes:
       - ../notebooks:/home/venv/notebooks
       - ../datacube.conf:/home/venv/datacube.conf
@@ -85,8 +66,8 @@ services:
     restart: always
 
 networks:
-  piksel-net:
-    name: piksel-net
+  default:
+    name: ${COMPOSE_PROJECT_NAME:-piksel}-net
 
 volumes:
   postgres_data:
