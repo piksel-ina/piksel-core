@@ -4,8 +4,8 @@ Enable users to run the mini-piksel product on their local machines, providing a
 
 ## Prerequisites
 
-- **Docker:** Ensure Docker is installed on your system.
-- **Docker Compose:** Ensure Docker Compose is installed on your system.
+- **Docker:** For installation documentation, please refer to [Docker's official documentation](https://docs.docker.com/get-docker/).
+- **Make:** Required for using the Makefile automation (Linux/macOS recommended). For Windows users, you may need to run the Docker Compose commands directly or use WSL2 instead.
 
 ## Quick Start
 
@@ -47,7 +47,7 @@ Follow these steps to get your ODC environment up and running:
     make up
     ```
 
-    This will start all Docker containers using the images built in the previous step. Jupyter is accessible at `http://localhost:8888`.
+    This will start all Docker containers using the images built in the previous step.
 
 6.  **Initialize the Database (First Time Only):**
 

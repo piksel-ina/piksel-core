@@ -28,3 +28,4 @@ pyyaml
 scipy
 deprecat
 importlib_resources
+Jinja2>=3.1.6
