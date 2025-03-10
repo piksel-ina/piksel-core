@@ -85,35 +85,46 @@ Follow these steps to get your ODC environment up and running:
     make jupyter-token
     ```
 
-## Working with the Environment
+## For Developers
 
 ### Basic Management
 
-- **Check Environment Configuration:**
-  ```bash
-  make check-env
-  ```
-- **Check ODC Configuration:**
+- **Check Environment and ODC Configuration:**
 
   ```bash
+  make check-env
   make check-config
   ```
 
-- **View Service Status:**
+- **View Service Status and logs:**
 
   ```bash
   make ps
-  ```
-
-- **View Logs**
-  ```bash
   make logs
   ```
+
 - **Stop the Environment:**
 
   ```bash
   make down
   ```
+
+### Testing
+
+1. **Install Test Dependencies**
+
+```bash
+make test-deps
+```
+
+2. **Run Tests**
+
+- Run all tests: `make test`
+- Run unit tests only: `make test-unit`
+- Run integration tests only: `make test-integration`
+- Run tests with verbose output: `make test-verbose`
+
+For detailed information about our testing framework and practices, see the [Testing Documentation](tests/README.md).
 
 ### Access Shells:
 
