@@ -316,7 +316,7 @@ TEST_VENV_DIR := .venv
 PYTEST_ARGS ?= -v
 
 # Test commands
-.PHONY: test-up test-down test-logs test-ps test test-venv test-deps test-verbose
+.PHONY: test-up test-down test-logs test-ps test test-venv test-deps test-verbose test-clean
 
 # Start test environment with test project name (creates isolated network)
 test-up: setup-config
@@ -328,7 +328,8 @@ test-up: setup-config
 # Stop and remove test services
 test-down:
 	@echo "$(BLUE)Stopping and removing Piksel test containers...$(NC)"
-	docker compose --env-file .env -f $(COMPOSE_FILE) -p $(TEST_PROJECT_NAME) down -v
+	docker compose --env-file .env -f $(COMPOSE_FILE) -p $(TEST_PROJECT_NAME) down -v 
+	@echo "$(GREEN)Test environment removed$(NC)"
 
 # View logs from test services
 test-logs:
@@ -356,9 +357,13 @@ test: test-up
 		echo "$(RED)Virtual environment not found. Run 'make test-deps' first.$(NC)"; \
 		exit 1; \
 	fi
-	$(TEST_VENV_DIR)/bin/pytest $(PYTEST_ARGS) tests/
+	@echo "$(YELLOW)Running pytest...$(NC)"
+	@( $(TEST_VENV_DIR)/bin/pytest $(PYTEST_ARGS) tests/ ; test_exit=$$? ; \
+	  echo "$(BLUE)Cleaning up test environment...$(NC)" ; \
+	  $(MAKE) test-down > /dev/null 2>&1 ; \
+	  exit $$test_exit )
 
-test-unit: test-up
+test-unit: 
 	@echo "$(BLUE)Running unit tests...$(NC)"
 	@if [ ! -d "$(TEST_VENV_DIR)" ]; then \
 		echo "$(RED)Virtual environment not found. Run 'make test-deps' first.$(NC)"; \
@@ -372,8 +377,30 @@ test-integration: test-up
 		echo "$(RED)Virtual environment not found. Run 'make test-deps' first.$(NC)"; \
 		exit 1; \
 	fi
-	$(TEST_VENV_DIR)/bin/pytest $(PYTEST_ARGS) tests/integration
+	@( $(TEST_VENV_DIR)/bin/pytest $(PYTEST_ARGS) tests/integration ; test_exit=$$? ; \
+	  echo "$(BLUE)Cleaning up test environment...$(NC)" ; \
+	  $(MAKE) test-down > /dev/null 2>&1 ; \
+	  exit $$test_exit )
 
 test-verbose: PYTEST_ARGS=-xvs
 test-verbose: test
 	@echo "$(GREEN)Test complete$(NC)"
+	# Add this with your other test commands
+
+test-clean: test-down
+	@echo "$(BLUE)Cleaning up all test artifacts...$(NC)"
+	@echo "$(YELLOW)Cleaning up Docker test networks...$(NC)"
+	@docker network prune -f --filter "name=$(TEST_PROJECT_NAME)" 2>/dev/null || true
+	@echo "$(YELLOW)Removing Docker test images...$(NC)"
+	@docker images --format "{{.Repository}}:{{.Tag}}" | grep "$(TEST_PROJECT_NAME)" | xargs -r docker rmi -f 2>/dev/null || true
+	@echo "$(YELLOW)Removing dangling Docker images from tests...$(NC)"
+	@docker image prune -f 2>/dev/null || true
+	@echo "$(YELLOW)Removing pytest cache...$(NC)"
+	@rm -rf .pytest_cache
+	@find . -name "__pycache__" -type d -exec rm -rf {} +  2>/dev/null || true
+	@echo "$(YELLOW)Removing coverage reports...$(NC)"
+	@rm -f .coverage
+	@rm -rf htmlcov
+	@echo "$(YELLOW)Cleaning up test virtual environment...$(NC)"
+	@rm -rf $(TEST_VENV_DIR)
+	@echo "$(GREEN)Test environment completely cleaned!$(NC)"
