@@ -1,0 +1,74 @@
+name: Piksel Test Suite
+
+on:
+  push:
+    branches: [main, develop, feature/*]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Initialize environment
+        run: |
+          # Copy example .env file if not exists
+          cp -n .env.example .env || true
+          # Generate config
+          chmod +x scripts/generate_config.sh
+          source .env
+          ./scripts/generate_config.sh
+
+      - name: Create virtual environment and install test dependencies
+        run: |
+          # Create and activate virtual environment
+          python3 -m venv .venv
+          source .venv/bin/activate
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pytest pytest-cov python-dotenv pyyaml
+
+      - name: Start test environment
+        run: |
+          make test-up
+          # Wait for services to be ready
+          sleep 10
+
+      - name: Run tests
+        run: |
+          source .venv/bin/activate
+          python3 -m pytest -v tests/
+
+      - name: Clean up test environment
+        if: always() # Always run this step even if the previous steps fail
+        run: |
+          make test-clean
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            .coverage
+            htmlcov/
+          if-no-files-found: ignore
