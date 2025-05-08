@@ -1,12 +1,9 @@
 # Core ODC packages
+odc-geo
+odc-stac
+odc-cloud
 
-odc-geo~=0.4.9
-odc-stac~=0.3.11
-odc-cloud[ASYNC]~=0.2.5
-odc-dscache~=0.2.3
-setuptools
-
-# Additional dependencies for stac-to-dc
+# Additional dependencies for stac-to-dc and others
 boto3
 psycopg2-binary
 lark
@@ -22,10 +19,17 @@ ciso8601
 urlpath
 click
 fsspec
-pystac-client>=0.2.0
+pystac-client
+ruamel.yaml
 toolz
 pyyaml
 scipy
 deprecat
 importlib_resources
-Jinja2>=3.1.6
+Jinja2
+
+# GDAL and Related
+gdal
+rasterio
+--no-binary gdal
+--no-binary rasterio
