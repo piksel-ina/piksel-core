@@ -242,6 +242,9 @@ rm-product:
 
 
 # Indexing commands
+# STAC Catalog URLs
+LANDSATLOOK ?= https://landsatlook.usgs.gov/stac-server/
+
 # Default parameters for indexing
 Bbox ?= 114,-9,116,-7
 Date ?= 2020-01-01/2020-03-31
@@ -249,10 +252,12 @@ CollectionS2 ?= sentinel-2-l2a
 
 # Default parameters for LSX indexing (adjust these as appropriate)
 BboxLs ?= 112,-10,118,-6
-DateLs ?= 2020-06-01/2020-06-30
-CollectionLs ?= landsat-8
+DateLs ?= 2025-01-01/2025-03-31
+DateLsOld ?= 2000-01-01/2000-03-31
+CollectionLsSR ?= landsat-c2l2-sr
+CollectionLsST ?= landsat-c2l2-st
 
-.PHONY: index-sentinel2a 
+.PHONY: index-sentinel2a index-ls9-st
 
 index-sentinel2a:
 	@echo "$(BLUE)Indexing Sentinel-2 L2A data...$(NC)"
@@ -262,6 +267,51 @@ index-sentinel2a:
 	            --collections='$(CollectionS2)' \
 	            --datetime='$(Date)' \
 	            --rename-product='sentinel_2_l2a'
+
+index-ls9-st:
+	@echo "$(BLUE)Indexing LS9 C2L2 ST data...$(NC)"
+	$(DOCKER_COMPOSE) exec odc \
+	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
+	            --bbox='$(Bbox)' \
+	            --collections='$(CollectionLsST)' \
+	            --datetime='$(DateLs)' \
+	            --rename-product='ls9_st' \
+	            --limit=100 \
+	            --options="query={\"platform\":{\"in\":[\"LANDSAT_9\"]}}" \
+
+
+index-ls8-st:
+	@echo "$(BLUE)Indexing LS8 C2L2 ST data...$(NC)"
+	$(DOCKER_COMPOSE) exec odc \
+	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
+	            --bbox='$(Bbox)' \
+	            --collections='$(CollectionLsST)' \
+	            --datetime='$(DateLs)' \
+	            --rename-product='ls8_st' \
+	            --limit=100 \
+	            --options="query={\"platform\":{\"in\":[\"LANDSAT_8\"]}}" \
+
+index-ls7-st:
+	@echo "$(BLUE)Indexing LS7 C2L2 ST data...$(NC)"
+	$(DOCKER_COMPOSE) exec odc \
+	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
+	            --bbox='$(Bbox)' \
+	            --collections='$(CollectionLsST)' \
+	            --datetime='$(DateLsOld)' \
+	            --rename-product='ls7_st' \
+	            --limit=100 \
+	            --options="query={\"platform\":{\"in\":[\"LANDSAT_7\"]}}" \
+
+index-ls5-st:
+	@echo "$(BLUE)Indexing LS5 C2L2 ST data...$(NC)"
+	$(DOCKER_COMPOSE) exec odc \
+	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
+	            --bbox='$(Bbox)' \
+	            --collections='$(CollectionLsST)' \
+	            --datetime='$(DateLsOld)' \
+	            --rename-product='ls5_st' \
+	            --limit=100 \
+	            --options="query={\"platform\":{\"in\":[\"LANDSAT_5\"]}}" \
 
 # Utility commands
 .PHONY: bash-odc bash-jupyter jupyter-token

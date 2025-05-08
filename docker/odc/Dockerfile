@@ -1,5 +1,5 @@
 # Build stage
-ARG GDAL_VERSION=ubuntu-small-3.10.2
+ARG GDAL_VERSION=ubuntu-small-3.10.3
 FROM ghcr.io/osgeo/gdal:${GDAL_VERSION} AS builder
 WORKDIR /app
 
