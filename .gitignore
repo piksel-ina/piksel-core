@@ -16,3 +16,4 @@ venv/
 .venv-test
 ENV/
 datacube.conf
+*.tif
