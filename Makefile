@@ -54,12 +54,12 @@ help:
 	@echo "  make rm-product P=<product.yaml>     - Remove a specific product definition"
 	@echo ""
 	@echo "${GREEN}Indexing Commands:${NC}"
-	@echo "  make index-sentinel2a      - Index Sentinel-2 L2A data with the following defaults:"
+	@echo "  make index-sentinel2      - Index Sentinel-2 L2A data with the following defaults:"
 	@echo "                               Bbox  (default: $(Bbox))"
 	@echo "                               Date  (default: $(Date))"
 	@echo ""
 	@echo "  To override these defaults, pass new values as variables."
-	@echo "  For example: ${GREEN}make index-sentinel2a Bbox='115,-10,117,-8' Date='2021-01-01/2021-01-31'${NC}"
+	@echo "  For example: ${GREEN}make index-sentinel2 Bbox='115,-10,117,-8' Date='2021-01-01/2021-01-31'${NC}"
 	@echo ""
 	@echo "${GREEN}Testing Commands:${NC}"
 	@echo "  make test                   - Run all tests with minimal output"
@@ -247,35 +247,42 @@ LANDSATLOOK ?= https://landsatlook.usgs.gov/stac-server/
 
 # Default parameters for indexing
 Bbox ?= 114,-9,116,-7
-Date ?= 2020-01-01/2020-03-31
+Date ?= 2025-01-01/2025-05-30
 CollectionS2 ?= sentinel-2-l2a
 
 # Default parameters for LSX indexing (adjust these as appropriate)
 BboxLs ?= 112,-10,118,-6
-DateLs ?= 2025-01-01/2025-03-31
-DateLsOld ?= 2000-01-01/2000-03-31
+DateLsOld ?= 2000-01-01/2000-06-30
 CollectionLsSR ?= landsat-c2l2-sr
 CollectionLsST ?= landsat-c2l2-st
 
-.PHONY: index-sentinel2a index-ls9-st
+.PHONY: index-sentinel2 index-ls9-st index-ls8-st index-ls7-st index-ls5-st \
+	index-ls9-sr index-ls8-sr index-ls7-sr index-ls5-sr index-all
 
-index-sentinel2a:
+# Index all products
+index-all: index-sentinel2 index-ls9-st index-ls8-st index-ls7-st index-ls5-st \
+	index-ls9-sr index-ls8-sr index-ls7-sr index-ls5-sr
+	@echo "$(GREEN)All products indexed successfully!$(NC)"
+
+# Sentinel-2 L2A
+index-sentinel2:
 	@echo "$(BLUE)Indexing Sentinel-2 L2A data...$(NC)"
 	$(DOCKER_COMPOSE) exec odc \
 	  stac-to-dc --catalog-href='https://earth-search.aws.element84.com/v1/' \
 	            --bbox='$(Bbox)' \
 	            --collections='$(CollectionS2)' \
 	            --datetime='$(Date)' \
-	            --rename-product='sentinel_2_l2a'
+	            --rename-product='s2_l2a'
 
+# Landsat Surface Temperature
 index-ls9-st:
 	@echo "$(BLUE)Indexing LS9 C2L2 ST data...$(NC)"
 	$(DOCKER_COMPOSE) exec odc \
 	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
 	            --bbox='$(Bbox)' \
 	            --collections='$(CollectionLsST)' \
-	            --datetime='$(DateLs)' \
-	            --rename-product='ls9_st' \
+	            --datetime='$(Date)' \
+	            --rename-product='ls9_c2l2_st' \
 	            --limit=100 \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_9\"]}}" \
 
@@ -286,8 +293,8 @@ index-ls8-st:
 	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
 	            --bbox='$(Bbox)' \
 	            --collections='$(CollectionLsST)' \
-	            --datetime='$(DateLs)' \
-	            --rename-product='ls8_st' \
+	            --datetime='$(Date)' \
+	            --rename-product='ls8_c2l2_st' \
 	            --limit=100 \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_8\"]}}" \
 
@@ -298,7 +305,7 @@ index-ls7-st:
 	            --bbox='$(Bbox)' \
 	            --collections='$(CollectionLsST)' \
 	            --datetime='$(DateLsOld)' \
-	            --rename-product='ls7_st' \
+	            --rename-product='ls7_c2l2_st' \
 	            --limit=100 \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_7\"]}}" \
 
@@ -309,9 +316,56 @@ index-ls5-st:
 	            --bbox='$(Bbox)' \
 	            --collections='$(CollectionLsST)' \
 	            --datetime='$(DateLsOld)' \
-	            --rename-product='ls5_st' \
+	            --rename-product='ls5_c2l2_st' \
 	            --limit=100 \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_5\"]}}" \
+
+# Landsat Surface Reflectance
+index-ls9-sr:
+	@echo "$(BLUE)Indexing LS9 C2L2 SR data...$(NC)"
+	$(DOCKER_COMPOSE) exec odc \
+	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
+	            --bbox='$(Bbox)' \
+	            --collections='$(CollectionLsSR)' \
+	            --datetime='$(Date)' \
+	            --rename-product='ls9_c2l2_sr' \
+	            --limit=100 \
+	            --options="query={\"platform\":{\"in\":[\"LANDSAT_9\"]}}" \
+
+
+index-ls8-sr:
+	@echo "$(BLUE)Indexing LS8 C2L2 SR data...$(NC)"
+	$(DOCKER_COMPOSE) exec odc \
+	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
+	            --bbox='$(Bbox)' \
+	            --collections='$(CollectionLsSR)' \
+	            --datetime='$(Date)' \
+	            --rename-product='ls8_c2l2_sr' \
+	            --limit=100 \
+	            --options="query={\"platform\":{\"in\":[\"LANDSAT_8\"]}}" \
+
+index-ls7-sr:
+	@echo "$(BLUE)Indexing LS7 C2L2 SR data...$(NC)"
+	$(DOCKER_COMPOSE) exec odc \
+	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
+	            --bbox='$(Bbox)' \
+	            --collections='$(CollectionLsSR)' \
+	            --datetime='$(DateLsOld)' \
+	            --rename-product='ls7_c2l2_sr' \
+	            --limit=100 \
+	            --options="query={\"platform\":{\"in\":[\"LANDSAT_7\"]}}" \
+
+index-ls5-sr:
+	@echo "$(BLUE)Indexing LS5 C2L2 SR data...$(NC)"
+	$(DOCKER_COMPOSE) exec odc \
+	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
+	            --bbox='$(Bbox)' \
+	            --collections='$(CollectionLsSR)' \
+	            --datetime='$(DateLsOld)' \
+	            --rename-product='ls5_c2l2_sr' \
+	            --limit=100 \
+	            --options="query={\"platform\":{\"in\":[\"LANDSAT_5\"]}}" \
+
 
 # Utility commands
 .PHONY: bash-odc bash-jupyter jupyter-token
