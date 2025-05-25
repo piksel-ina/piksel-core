@@ -24,13 +24,14 @@ services:
     environment:
       - ODC_DEFAULT_DB_USERNAME=${POSTGRES_USER}
       - ODC_DEFAULT_DB_DATABASE=${POSTGRES_DB}
-      - ODC_DEFAULT_DB_HOSTNAME=${POSTGRES_HOST}
+      - ODC_DEFAULT_DB_HOSTNAME=${POSTGRES_HOST:-postgres}
       - ODC_DEFAULT_DB_PASSWORD=${POSTGRES_PASSWORD}
+      - ODC_DEFAULT_DB_PORT=${POSTGRES_PORT:-5432}
     volumes:
-      - ../datacube.conf:/root/.datacube.conf
       - ../products:/home/venv/products
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     restart: always
     command: tail -f /dev/null
     healthcheck:
@@ -48,8 +49,9 @@ services:
     environment:
       - ODC_DEFAULT_DB_USERNAME=${POSTGRES_USER}
       - ODC_DEFAULT_DB_DATABASE=${POSTGRES_DB}
-      - ODC_DEFAULT_DB_HOSTNAME=${POSTGRES_HOST}
+      - ODC_DEFAULT_DB_HOSTNAME=${POSTGRES_HOST:-postgres}
       - ODC_DEFAULT_DB_PASSWORD=${POSTGRES_PASSWORD}
+      - ODC_DEFAULT_DB_PORT=${POSTGRES_PORT:-5432}
       - PYTHONPATH=/home/venv/notebooks
       - JUPYTER_ENABLE_LAB=yes
       - ODC_CONFIG_PATH=${ODC_CONFIG_PATH}
@@ -57,7 +59,6 @@ services:
       - "${JUPYTER_PORT}:8888"
     volumes:
       - ../notebooks:/home/venv/notebooks
-      - ../datacube.conf:/home/venv/datacube.conf
     depends_on:
       - postgres
       - odc

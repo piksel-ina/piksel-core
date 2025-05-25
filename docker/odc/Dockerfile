@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
       ca-certificates \
       build-essential \
       libpq-dev \
+      gettext-base \
     && apt-get clean \
     && rm -rf /var/lib/{apt,dpkg,cache,log}
 
@@ -51,6 +52,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update && apt-get install -y \
       python3-minimal \
       postgresql-client \
+      gettext-base \
     && apt-get clean \
     && rm -rf /var/lib/{apt,dpkg,cache,log}
 
@@ -59,16 +61,22 @@ COPY --from=builder /home/venv /home/venv
 ENV PATH="/home/venv/bin:$PATH"
 
 # Copy configuration to root's home
-COPY datacube.conf /root/.datacube.conf
+COPY datacube.conf.template /root/.datacube.conf.template
 
 # Create user first
 RUN useradd -m -s /bin/bash appuser
 
-# Then copy configuration to appuser's home and set permissions
-COPY datacube.conf /home/appuser/.datacube.conf
-RUN chown appuser:appuser /home/appuser/.datacube.conf
+# Copy template to appuser's home and set permissions
+COPY datacube.conf.template /home/appuser/.datacube.conf.template
+RUN chown appuser:appuser /home/appuser/.datacube.conf.template
+
+# Copy entrypoint
+COPY docker/odc/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 USER appuser
 WORKDIR /home/appuser/app
 
+# Use entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["tail", "-f", "/dev/null"]
