@@ -391,12 +391,22 @@ jupyter-token:
 .PHONY: compile-deps update-deps verify-deps compile-test-deps test-container
 
 compile-deps:
-	@echo "$(BLUE)Compiling dependencies from requirements.in to requirements.txt...$(NC)"
-	@docker run --rm -v $(shell pwd):/app -w /app python:3.12 \
-		bash -c "apt-get update && apt-get install -y libpq-dev && \
+	@echo "$(BLUE)Installing GDAL system dependencies...$(NC)"
+	@sudo apt-get update && sudo apt-get install -y libgdal-dev gdal-bin
+
+	@echo "$(BLUE)Compiling dependencies using a Python virtual environment...$(NC)"
+	@python3 -m venv .venv
+	@. .venv/bin/activate && \
+		pip install --upgrade pip && \
 		pip install pip-tools && \
-		pip-compile docker/odc/requirements.in"
+		export GDAL_VERSION=$$(gdal-config --version) && \
+		pip install "GDAL==$${GDAL_VERSION}" && \
+		pip-compile docker/odc/requirements.in && \
+		pip-compile docker/jupyter/requirements.in -o docker/jupyter/requirements.jupyter.txt
 	@echo "$(GREEN)Dependencies compiled successfully!$(NC)"
+	@echo "Note: You can remove the virtual environment with 'rm -rf .venv' if desired"
+
+
 
 update-deps:
 	@echo "$(BLUE)Updating all dependencies to their latest versions...$(NC)"
