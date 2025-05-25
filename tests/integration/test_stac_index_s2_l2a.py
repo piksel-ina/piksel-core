@@ -42,7 +42,7 @@ def test_add_sentinel2_product(datacube_environment):
     ]
     
     verify_result = subprocess.run(verify_cmd, capture_output=True, text=True)
-    assert "sentinel_2_l2a" in verify_result.stdout, "Product was not added successfully"
+    assert "s2_l2a" in verify_result.stdout, "Product was not added successfully"
 
 @pytest.mark.dependency(depends=["test_add_sentinel2_product"])
 def test_stac_to_dc_sentinel2_indonesia(datacube_environment):
@@ -51,7 +51,7 @@ def test_stac_to_dc_sentinel2_indonesia(datacube_environment):
     bbox = "115.1,-8.4,115.3,-8.2"
     date_range = "2022-01-01/2022-01-15"
     collection = "sentinel-2-l2a"
-    product_name = "sentinel_2_l2a"
+    product_name = "s2_l2a"
     
     # Run the stac-to-dc command in the test container
     cmd = [
