@@ -111,7 +111,7 @@ jobs:
 
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
           SHORT_SHA=${GITHUB_SHA:0:7}
-          echo "timestamp_version=v${TIMESTAMP}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "timestamp_version=v${TIMESTAMP}" >> $GITHUB_OUTPUT
           echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
 
       - name: Generate tags

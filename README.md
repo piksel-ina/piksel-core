@@ -134,10 +134,26 @@ make bash-jupyter
 make psql
 ```
 
-## More Commands
-
+**More Commands:**
 For a full list of available `make` commands and their descriptions, run:
 
 ```bash
 make help
 ```
+
+### CI/CD Workflow & Branch Naming for Docker Image Builds
+
+The CI/CD pipeline automatically builds and pushes Docker images to the AWS ECR private repository based on branch and tag naming conventions:
+
+- **Main Development:**  
+  Commits to the `main` branch trigger a build and push Docker images tagged as `main` and `latest`.
+
+- **Feature & Hotfix Branches:**  
+  Branches named `feature/{feature-name}` or `hotfix/{hotfix-name}` trigger builds with images tagged accordingly (e.g., `feature-login`, `hotfix-urgent`).
+
+- **Production & Staging Releases:**  
+  Git tags following the format `vX.Y.Z` (e.g., `v1.2.3`) or pre-release tags like `v1.2.3-beta1` trigger builds and push images tagged for production or staging.
+  - Use `vX.Y.Z` for production releases.
+  - Use `vX.Y.Z-betaN` or similar for staging/pre-release.
+
+All images are pushed to the AWS ECR private repository with tags that align with automated lifecycle policies, ensuring production, staging, and development images are managed and retained according to best practices.
