@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - develop
       - "feature/**"
       - "hotfix/**"
     tags:
@@ -12,7 +11,6 @@ on:
   pull_request:
     branches:
       - main
-      - develop
   workflow_dispatch:
     inputs:
       build_target:
@@ -58,7 +56,7 @@ jobs:
         id: should_build
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            if [[ "${{ github.event.inputs.build_target }}" == "both" || "${{ github.event.inputs.build_target }}" == "${{ matrix.name }}" ]]; then
+            if [[ "${{ github.event.inputs.build_target }}" == "all" || "${{ github.event.inputs.build_target }}" == "${{ matrix.name }}" ]]; then
               echo "build=true" >> $GITHUB_OUTPUT
             else
               echo "build=false" >> $GITHUB_OUTPUT
@@ -100,7 +98,6 @@ jobs:
         if: steps.should_build.outputs.build == 'true' && (github.event_name != 'pull_request' || steps.changes.outputs.changed == 'true')
         id: meta
         run: |
-          # Get branch name or tag
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
             echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -112,7 +109,6 @@ jobs:
             echo "is_tag=false" >> $GITHUB_OUTPUT
           fi
 
-          # Generate timestamp version
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
           SHORT_SHA=${GITHUB_SHA:0:7}
           echo "timestamp_version=v${TIMESTAMP}-${SHORT_SHA}" >> $GITHUB_OUTPUT
@@ -125,19 +121,23 @@ jobs:
           REPO="${{ env.ECR_REGISTRY }}/${{ matrix.repository }}"
           TAGS=""
 
-          # Always add short SHA and timestamp version (for lifecycle policy)
+          # Always add short SHA and timestamp version
           TAGS="$REPO:${{ matrix.name }}-${{ steps.meta.outputs.short_sha }}"
           TAGS="$TAGS,$REPO:${{ matrix.name }}-${{ steps.meta.outputs.timestamp_version }}"
 
           if [[ "${{ steps.meta.outputs.is_tag }}" == "true" ]]; then
-            # Git tag - create release tag
-            TAGS="$TAGS,$REPO:${{ matrix.name }}-release-${{ steps.meta.outputs.version }}"
+            # This is a release or pre-release tag, e.g., v1.0.0 or v1.0.0-beta1
+            TAGS="$TAGS,$REPO:${{ matrix.name }}-v${{ steps.meta.outputs.version }}"
           elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            # Main branch - add latest
             TAGS="$TAGS,$REPO:${{ matrix.name }}-latest"
-          else
-            # Feature branch - add branch name
-            TAGS="$TAGS,$REPO:${{ matrix.name }}-${{ steps.meta.outputs.version }}"
+          elif [[ "${{ github.ref }}" == refs/heads/feature/* ]]; then
+            BRANCH_NAME="${GITHUB_REF#refs/heads/feature/}"
+            BRANCH_NAME=$(echo $BRANCH_NAME | sed 's/[^a-zA-Z0-9._-]/-/g')
+            TAGS="$TAGS,$REPO:${{ matrix.name }}-feature-$BRANCH_NAME"
+          elif [[ "${{ github.ref }}" == refs/heads/hotfix/* ]]; then
+            BRANCH_NAME="${GITHUB_REF#refs/heads/hotfix/}"
+            BRANCH_NAME=$(echo $BRANCH_NAME | sed 's/[^a-zA-Z0-9._-]/-/g')
+            TAGS="$TAGS,$REPO:${{ matrix.name }}-hotfix-$BRANCH_NAME"
           fi
 
           echo "tags=$TAGS" >> $GITHUB_OUTPUT
