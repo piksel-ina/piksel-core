@@ -4,9 +4,6 @@
 #
 #    pip-compile docker/odc/requirements.in
 #
---no-binary gdal
---no-binary rasterio
-
 affine==2.4.0
     # via
     #   odc-geo

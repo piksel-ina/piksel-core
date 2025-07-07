@@ -31,5 +31,3 @@ Jinja2
 # GDAL and Related
 gdal
 rasterio
---no-binary gdal
---no-binary rasterio

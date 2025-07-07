@@ -1,5 +1,5 @@
 # Build stage
-ARG GDAL_VERSION=ubuntu-small-3.11.0
+ARG GDAL_VERSION=ubuntu-small-3.11.1
 FROM ghcr.io/osgeo/gdal:${GDAL_VERSION} AS builder
 WORKDIR /app
 
@@ -26,18 +26,10 @@ ENV PATH="/home/venv/bin:$PATH"
 COPY docker/odc/requirements.txt /app/requirements.txt
 
 # Install Python packages
-RUN pip install --break-system-packages \
-    --trusted-host pypi.org \
-    --trusted-host files.pythonhosted.org \
-    --no-cache-dir \
-    -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Install ODC packages from GitHub
-RUN pip install --break-system-packages \
-    --trusted-host pypi.org \
-    --trusted-host files.pythonhosted.org \
-    --no-cache-dir \
-    --no-deps \
+RUN pip install --no-cache-dir --no-deps \
     "git+https://github.com/opendatacube/datacube-core.git@1.9.5" \
     "git+https://github.com/opendatacube/odc-tools.git@develop-1.9#subdirectory=apps/dc_tools" \
     "git+https://github.com/opendatacube/eo-datasets.git@integrate-1.9"
