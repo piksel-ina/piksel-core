@@ -38,7 +38,7 @@ RUN pip install --break-system-packages \
     --trusted-host files.pythonhosted.org \
     --no-cache-dir \
     --no-deps \
-    "git+https://github.com/opendatacube/datacube-core.git@develop-1.9" \
+    "git+https://github.com/opendatacube/datacube-core.git@1.9.5" \
     "git+https://github.com/opendatacube/odc-tools.git@develop-1.9#subdirectory=apps/dc_tools" \
     "git+https://github.com/opendatacube/eo-datasets.git@integrate-1.9"
 
