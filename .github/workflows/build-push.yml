@@ -8,6 +8,8 @@ on:
       - "hotfix/**"
     tags:
       - "v*"
+      - "odc-*"
+      - "jupyter-*"
   pull_request:
     branches:
       - main
@@ -52,18 +54,76 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Extract metadata
+        id: meta
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+            
+            # Check if tag is component-specific
+            if [[ $TAG_NAME == odc-* ]]; then
+              COMPONENT="odc"
+              VERSION=${TAG_NAME#odc-}
+            elif [[ $TAG_NAME == jupyter-* ]]; then
+              COMPONENT="jupyter"  
+              VERSION=${TAG_NAME#jupyter-}
+            else
+              # Generic tag (v*) applies to all components
+              COMPONENT="all"
+              VERSION=$TAG_NAME
+            fi
+            
+            echo "component=$COMPONENT" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "is_tag=true" >> $GITHUB_OUTPUT
+          else
+            BRANCH=${GITHUB_REF#refs/heads/}
+            BRANCH=$(echo $BRANCH | sed 's/[^a-zA-Z0-9._-]/-/g')
+            echo "component=all" >> $GITHUB_OUTPUT
+            echo "version=$BRANCH" >> $GITHUB_OUTPUT
+            echo "is_tag=false" >> $GITHUB_OUTPUT
+          fi
+
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          SHORT_SHA=${GITHUB_SHA:0:7}
+          echo "timestamp_version=v${TIMESTAMP}" >> $GITHUB_OUTPUT
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+
       - name: Check if should build this image
         id: should_build
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # Manual workflow dispatch
             if [[ "${{ github.event.inputs.build_target }}" == "all" || "${{ github.event.inputs.build_target }}" == "${{ matrix.name }}" ]]; then
               echo "build=true" >> $GITHUB_OUTPUT
+              echo "reason=manual_dispatch" >> $GITHUB_OUTPUT
             else
               echo "build=false" >> $GITHUB_OUTPUT
+              echo "reason=manual_dispatch_skip" >> $GITHUB_OUTPUT
+            fi
+          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/* ]]; then
+            # Tag push - check if it's component-specific
+            if [[ "${{ steps.meta.outputs.component }}" == "all" || "${{ steps.meta.outputs.component }}" == "${{ matrix.name }}" ]]; then
+              echo "build=true" >> $GITHUB_OUTPUT
+              echo "reason=tag_match" >> $GITHUB_OUTPUT
+            else
+              echo "build=false" >> $GITHUB_OUTPUT
+              echo "reason=tag_mismatch" >> $GITHUB_OUTPUT
             fi
           else
+            # Branch push or PR
             echo "build=true" >> $GITHUB_OUTPUT
+            echo "reason=branch_push" >> $GITHUB_OUTPUT
           fi
+
+      - name: Log build decision
+        run: |
+          echo "Build decision for ${{ matrix.name }}:"
+          echo "  Should build: ${{ steps.should_build.outputs.build }}"
+          echo "  Reason: ${{ steps.should_build.outputs.reason }}"
+          echo "  Event: ${{ github.event_name }}"
+          echo "  Ref: ${{ github.ref }}"
+          echo "  Component filter: ${{ steps.meta.outputs.component }}"
 
       - name: Check for changes
         if: steps.should_build.outputs.build == 'true' && github.event_name == 'pull_request'
@@ -94,26 +154,6 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Extract metadata
-        if: steps.should_build.outputs.build == 'true' && (github.event_name != 'pull_request' || steps.changes.outputs.changed == 'true')
-        id: meta
-        run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/}
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "is_tag=true" >> $GITHUB_OUTPUT
-          else
-            BRANCH=${GITHUB_REF#refs/heads/}
-            BRANCH=$(echo $BRANCH | sed 's/[^a-zA-Z0-9._-]/-/g')
-            echo "version=$BRANCH" >> $GITHUB_OUTPUT
-            echo "is_tag=false" >> $GITHUB_OUTPUT
-          fi
-
-          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          SHORT_SHA=${GITHUB_SHA:0:7}
-          echo "timestamp_version=v${TIMESTAMP}" >> $GITHUB_OUTPUT
-          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
-
       - name: Generate tags
         if: steps.should_build.outputs.build == 'true' && (github.event_name != 'pull_request' || steps.changes.outputs.changed == 'true')
         id: tags
@@ -126,8 +166,16 @@ jobs:
           TAGS="$TAGS,$REPO:${{ matrix.name }}-${{ steps.meta.outputs.timestamp_version }}"
 
           if [[ "${{ steps.meta.outputs.is_tag }}" == "true" ]]; then
-            # This is a release or pre-release tag, e.g., v1.0.0 or v1.0.0-beta1
-            TAGS="$TAGS,$REPO:${{ matrix.name }}-v${{ steps.meta.outputs.version }}"
+            # This is a tag build
+            if [[ "${{ steps.meta.outputs.component }}" == "${{ matrix.name }}" ]]; then
+              # Component-specific tag (e.g., odc-v1.2.3 or jupyter-v1.0.5)
+              TAGS="$TAGS,$REPO:${{ matrix.name }}-${{ steps.meta.outputs.version }}"
+              echo "Added component-specific tag: ${{ matrix.name }}-${{ steps.meta.outputs.version }}"
+            elif [[ "${{ steps.meta.outputs.component }}" == "all" ]]; then
+              # Generic tag (e.g., v1.2.3) - applies to all components
+              TAGS="$TAGS,$REPO:${{ matrix.name }}-${{ steps.meta.outputs.version }}"
+              echo "Added generic tag: ${{ matrix.name }}-${{ steps.meta.outputs.version }}"
+            fi
           elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             TAGS="$TAGS,$REPO:${{ matrix.name }}-latest"
           elif [[ "${{ github.ref }}" == refs/heads/feature/* ]]; then
@@ -141,7 +189,7 @@ jobs:
           fi
 
           echo "tags=$TAGS" >> $GITHUB_OUTPUT
-          echo "Generated tags: $TAGS"
+          echo "Generated tags for ${{ matrix.name }}: $TAGS"
 
       - name: Set up Docker Buildx
         if: steps.should_build.outputs.build == 'true' && (github.event_name != 'pull_request' || steps.changes.outputs.changed == 'true')
@@ -166,7 +214,14 @@ jobs:
       - name: Output image URIs
         if: steps.should_build.outputs.build == 'true' && (github.event_name != 'pull_request' || steps.changes.outputs.changed == 'true')
         run: |
-          echo "### 🚀 Built and pushed ${{ matrix.name }} image" >> $GITHUB_STEP_SUMMARY
+          echo "### Built and pushed ${{ matrix.name }} image" >> $GITHUB_STEP_SUMMARY
           echo "**Repository:** ${{ env.ECR_REGISTRY }}/${{ matrix.repository }}" >> $GITHUB_STEP_SUMMARY
           echo "**Tags:**" >> $GITHUB_STEP_SUMMARY
           echo "${{ steps.tags.outputs.tags }}" | tr ',' '\n' | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY
+
+      - name: Skip build summary
+        if: steps.should_build.outputs.build == 'false'
+        run: |
+          echo "### Skipped ${{ matrix.name }} image build" >> $GITHUB_STEP_SUMMARY
+          echo "**Reason:** ${{ steps.should_build.outputs.reason }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Component filter:** ${{ steps.meta.outputs.component }}" >> $GITHUB_STEP_SUMMARY
