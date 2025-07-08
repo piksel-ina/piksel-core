@@ -15,6 +15,8 @@ RUN apt-get update && apt-get install -y \
       ca-certificates \
       build-essential \
       libpq-dev \
+      postgresql-client \
+      postgis \
       gettext-base \
     && apt-get clean \
     && rm -rf /var/lib/{apt,dpkg,cache,log}
