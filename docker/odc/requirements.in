@@ -27,6 +27,10 @@ scipy
 deprecat
 importlib_resources
 Jinja2
+aiobotocore
+aiohttp 
+requests 
+fsspec[http]
 
 # GDAL and Related
 gdal
