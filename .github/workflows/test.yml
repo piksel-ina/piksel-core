@@ -42,10 +42,8 @@ jobs:
       - name: Create virtual environment and install test dependencies
         run: |
           # Create and activate virtual environment
-          python3 -m venv .venv
-          source .venv/bin/activate
-          python3 -m pip install --upgrade pip
-          python3 -m pip install pytest pytest-cov python-dotenv pyyaml
+          make test-venv
+          make test-deps
 
       - name: Start test environment
         run: |
@@ -55,11 +53,10 @@ jobs:
 
       - name: Run tests
         run: |
-          source .venv/bin/activate
-          python3 -m pytest -v tests/
+          make test
 
       - name: Clean up test environment
-        if: always() # Always run this step even if the previous steps fail
+        if: always()
         run: |
           make test-clean
 
