@@ -401,8 +401,8 @@ compile-deps:
 		pip install pip-tools && \
 		export GDAL_VERSION=$$(gdal-config --version) && \
 		pip install "GDAL==$${GDAL_VERSION}" && \
-		pip-compile docker/odc/requirements.in && \
-		pip-compile docker/jupyter/requirements.in -o docker/jupyter/requirements.jupyter.txt
+		pip-compile docker/odc/requirements.in # && \
+		# pip-compile docker/jupyter/requirements.in -o docker/jupyter/requirements.jupyter.txt
 	@echo "$(GREEN)Dependencies compiled successfully!$(NC)"
 	@echo "Note: You can remove the virtual environment with 'rm -rf .venv' if desired"
 
