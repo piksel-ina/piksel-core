@@ -61,6 +61,15 @@ help:
 	@echo "  To override these defaults, pass new values as variables."
 	@echo "  For example: ${GREEN}make index-sentinel2 Bbox='115,-10,117,-8' Date='2021-01-01/2021-01-31'${NC}"
 	@echo ""
+	@echo "  make index-ls9-st         - Index Landsat-9 Surface Temperature data"
+	@echo "  make index-ls8-st         - Index Landsat-8 Surface Temperature data"
+	@echo "  make index-ls7-st         - Index Landsat-7 Surface Temperature data"
+	@echo "  make index-ls5-st         - Index Landsat-5 Surface Temperature data"
+	@echo "  make index-ls9-sr         - Index Landsat-9 Surface Reflectance data"
+	@echo "  make index-ls8-sr         - Index Landsat-8 Surface Reflectance data"
+	@echo "  make index-ls7-sr         - Index Landsat-7 Surface Reflectance data"
+	@echo "  make index-ls5-sr         - Index Landsat-5 Surface Reflectance data"
+	@echo ""
 	@echo "${GREEN}Testing Commands:${NC}"
 	@echo "  make test                   - Run all tests with minimal output"
 	@echo "  make test-verbose           - Run all tests with detailed output"
@@ -296,6 +305,7 @@ index-ls8-st:
 	            --collections='$(CollectionLsST)' \
 	            --datetime='$(Date)' \
 	            --rename-product='ls8_c2l2_st' \
+				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
 	            --limit=100 \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_8\"]}}" \
 
@@ -307,6 +317,7 @@ index-ls7-st:
 	            --collections='$(CollectionLsST)' \
 	            --datetime='$(DateLsOld)' \
 	            --rename-product='ls7_c2l2_st' \
+				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
 	            --limit=100 \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_7\"]}}" \
 
@@ -318,6 +329,7 @@ index-ls5-st:
 	            --collections='$(CollectionLsST)' \
 	            --datetime='$(DateLsOld)' \
 	            --rename-product='ls5_c2l2_st' \
+				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
 	            --limit=100 \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_5\"]}}" \
 
@@ -330,6 +342,7 @@ index-ls9-sr:
 	            --collections='$(CollectionLsSR)' \
 	            --datetime='$(Date)' \
 	            --rename-product='ls9_c2l2_sr' \
+				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
 	            --limit=100 \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_9\"]}}" \
 
@@ -342,6 +355,7 @@ index-ls8-sr:
 	            --collections='$(CollectionLsSR)' \
 	            --datetime='$(Date)' \
 	            --rename-product='ls8_c2l2_sr' \
+				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
 	            --limit=100 \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_8\"]}}" \
 
@@ -353,6 +367,7 @@ index-ls7-sr:
 	            --collections='$(CollectionLsSR)' \
 	            --datetime='$(DateLsOld)' \
 	            --rename-product='ls7_c2l2_sr' \
+				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
 	            --limit=100 \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_7\"]}}" \
 
@@ -364,6 +379,7 @@ index-ls5-sr:
 	            --collections='$(CollectionLsSR)' \
 	            --datetime='$(DateLsOld)' \
 	            --rename-product='ls5_c2l2_sr' \
+				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
 	            --limit=100 \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_5\"]}}" \
 

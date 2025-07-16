@@ -32,8 +32,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Install ODC packages from GitHub
 RUN pip install --no-cache-dir --no-deps \
-    "git+https://github.com/opendatacube/datacube-core.git@1.9.5" \
-    "git+https://github.com/opendatacube/odc-tools.git@develop-1.9#subdirectory=apps/dc_tools" \
+    "git+https://github.com/opendatacube/datacube-core.git@1.9.6" \
+    "odc-apps-dc-tools==1.9.3" \
     "git+https://github.com/opendatacube/eo-datasets.git@integrate-1.9"
 
 # Runtime stage
