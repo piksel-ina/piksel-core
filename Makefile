@@ -283,6 +283,7 @@ index-ls9-st:
 	            --collections='$(CollectionLsST)' \
 	            --datetime='$(Date)' \
 	            --rename-product='ls9_c2l2_st' \
+				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
 	            --limit=100 \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_9\"]}}" \
 
