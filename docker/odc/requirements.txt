@@ -6,11 +6,15 @@
 #
 affine==2.4.0
     # via
+    #   datacube
+    #   eodatasets3
     #   odc-geo
     #   odc-stac
     #   rasterio
-aiobotocore==2.23.0
-    # via -r docker/odc/requirements.in
+aiobotocore[boto3]==2.23.0
+    # via
+    #   -r docker/odc/requirements.in
+    #   odc-cloud
 aiohappyeyeballs==2.6.1
     # via aiohttp
 aiohttp==3.12.14
@@ -23,62 +27,112 @@ aioitertools==0.12.0
 aiosignal==1.4.0
     # via aiohttp
 alembic==1.16.3
-    # via -r docker/odc/requirements.in
+    # via
+    #   -r docker/odc/requirements.in
+    #   datacube
 antimeridian==0.4.1
-    # via -r docker/odc/requirements.in
+    # via
+    #   -r docker/odc/requirements.in
+    #   datacube
 attrs==25.3.0
     # via
     #   aiohttp
     #   cattrs
+    #   datacube
+    #   eodatasets3
+    #   fiona
     #   jsonschema
     #   rasterio
     #   referencing
 boltons==25.0.0
-    # via -r docker/odc/requirements.in
+    # via
+    #   -r docker/odc/requirements.in
+    #   eodatasets3
 boto3==1.38.27
     # via
     #   -r docker/odc/requirements.in
+    #   aiobotocore
+    #   eodatasets3
     #   odc-cloud
 botocore==1.38.27
     # via
     #   aiobotocore
     #   boto3
+    #   eodatasets3
     #   odc-cloud
     #   s3transfer
 cachetools==6.1.0
-    # via odc-geo
+    # via
+    #   datacube
+    #   odc-geo
 cattrs==25.1.1
-    # via -r docker/odc/requirements.in
+    # via
+    #   -r docker/odc/requirements.in
+    #   eodatasets3
 certifi==2025.7.9
     # via
+    #   fiona
     #   pyproj
     #   rasterio
     #   requests
 charset-normalizer==3.4.2
     # via requests
 ciso8601==2.3.2
-    # via -r docker/odc/requirements.in
+    # via
+    #   -r docker/odc/requirements.in
+    #   eodatasets3
 click==8.2.1
     # via
     #   -r docker/odc/requirements.in
     #   click-plugins
     #   cligj
     #   dask
+    #   datacube
+    #   distributed
+    #   eodatasets3
+    #   fiona
+    #   odc-apps-dc-tools
     #   rasterio
 click-plugins==1.1.1.2
-    # via rasterio
+    # via
+    #   fiona
+    #   rasterio
 cligj==0.7.2
-    # via rasterio
+    # via
+    #   fiona
+    #   rasterio
 cloudpickle==3.1.1
-    # via dask
+    # via
+    #   dask
+    #   datacube
+    #   distributed
 dask[array]==2025.5.1
     # via
+    #   datacube
+    #   distributed
     #   odc-loader
     #   odc-stac
+datacube==1.9.6
+    # via
+    #   -r docker/odc/requirements.in
+    #   eodatasets3
+    #   odc-apps-dc-tools
 datadog==0.52.0
-    # via -r docker/odc/requirements.in
+    # via
+    #   -r docker/odc/requirements.in
+    #   odc-apps-dc-tools
+defusedxml==0.7.1
+    # via eodatasets3
 deprecat==2.1.3
-    # via -r docker/odc/requirements.in
+    # via
+    #   -r docker/odc/requirements.in
+    #   datacube
+distributed==2025.5.1
+    # via datacube
+eodatasets3==1.9.3
+    # via odc-apps-dc-tools
+fiona==1.10.1
+    # via eodatasets3
 frozenlist==1.7.0
     # via
     #   aiohttp
@@ -87,12 +141,17 @@ fsspec[http]==2025.5.1
     # via
     #   -r docker/odc/requirements.in
     #   dask
+    #   odc-apps-dc-tools
 gdal==3.11.0
     # via -r docker/odc/requirements.in
 geoalchemy2==0.17.1
-    # via -r docker/odc/requirements.in
+    # via
+    #   -r docker/odc/requirements.in
+    #   datacube
 greenlet==3.2.3
     # via sqlalchemy
+h5py==3.14.0
+    # via eodatasets3
 idna==3.10
     # via
     #   requests
@@ -100,7 +159,9 @@ idna==3.10
 importlib-resources==6.5.2
     # via -r docker/odc/requirements.in
 jinja2==3.1.6
-    # via -r docker/odc/requirements.in
+    # via
+    #   -r docker/odc/requirements.in
+    #   distributed
 jmespath==1.0.1
     # via
     #   aiobotocore
@@ -109,19 +170,27 @@ jmespath==1.0.1
 jsonschema==4.24.0
     # via
     #   -r docker/odc/requirements.in
+    #   datacube
+    #   eodatasets3
     #   pystac
 jsonschema-specifications==2025.4.1
     # via jsonschema
 lark==1.2.2
-    # via -r docker/odc/requirements.in
+    # via
+    #   -r docker/odc/requirements.in
+    #   datacube
 locket==1.0.0
-    # via partd
+    # via
+    #   distributed
+    #   partd
 mako==1.3.10
     # via alembic
 markupsafe==3.0.2
     # via
     #   jinja2
     #   mako
+msgpack==1.1.1
+    # via distributed
 multidict==6.6.3
     # via
     #   aiobotocore
@@ -131,6 +200,9 @@ numpy==2.3.1
     # via
     #   antimeridian
     #   dask
+    #   datacube
+    #   eodatasets3
+    #   h5py
     #   odc-geo
     #   odc-loader
     #   odc-stac
@@ -139,24 +211,39 @@ numpy==2.3.1
     #   scipy
     #   shapely
     #   xarray
-odc-cloud==0.2.5
+odc-apps-dc-tools==1.9.3
     # via -r docker/odc/requirements.in
+odc-cloud[async]==0.2.5
+    # via
+    #   -r docker/odc/requirements.in
+    #   odc-apps-dc-tools
 odc-geo==0.4.10
     # via
     #   -r docker/odc/requirements.in
+    #   datacube
+    #   odc-apps-dc-tools
     #   odc-loader
     #   odc-stac
+odc-io==0.2.2
+    # via odc-apps-dc-tools
 odc-loader==0.5.1
-    # via odc-stac
+    # via
+    #   datacube
+    #   odc-stac
 odc-stac==0.4.0
-    # via -r docker/odc/requirements.in
+    # via
+    #   -r docker/odc/requirements.in
+    #   datacube
 packaging==25.0
     # via
     #   dask
+    #   datacube
+    #   distributed
     #   geoalchemy2
     #   xarray
 pandas==2.3.1
     # via
+    #   datacube
     #   odc-stac
     #   xarray
 partd==1.4.2
@@ -165,22 +252,33 @@ propcache==0.3.2
     # via
     #   aiohttp
     #   yarl
+psutil==7.0.0
+    # via distributed
 psycopg2-binary==2.9.10
     # via -r docker/odc/requirements.in
 pyparsing==3.2.3
     # via rasterio
 pyproj==3.7.1
-    # via odc-geo
+    # via
+    #   datacube
+    #   eodatasets3
+    #   odc-geo
 pystac[validation]==1.13.0
     # via
+    #   eodatasets3
+    #   odc-apps-dc-tools
     #   odc-stac
     #   pystac-client
+    #   rio-stac
 pystac-client==0.8.6
-    # via -r docker/odc/requirements.in
+    # via
+    #   -r docker/odc/requirements.in
+    #   odc-apps-dc-tools
 python-dateutil==2.9.0.post0
     # via
     #   aiobotocore
     #   botocore
+    #   datacube
     #   pandas
     #   pystac
     #   pystac-client
@@ -190,11 +288,17 @@ pyyaml==6.0.2
     # via
     #   -r docker/odc/requirements.in
     #   dask
+    #   datacube
+    #   distributed
+    #   odc-apps-dc-tools
 rasterio==1.4.3
     # via
     #   -r docker/odc/requirements.in
+    #   datacube
+    #   eodatasets3
     #   odc-loader
     #   odc-stac
+    #   rio-stac
 referencing==0.36.2
     # via
     #   jsonschema
@@ -205,35 +309,56 @@ requests==2.32.4
     #   datadog
     #   pystac-client
     #   urlpath
+rio-stac==0.11.0
+    # via odc-apps-dc-tools
 rpds-py==0.26.0
     # via
     #   jsonschema
     #   referencing
 ruamel-yaml==0.18.14
-    # via -r docker/odc/requirements.in
+    # via
+    #   -r docker/odc/requirements.in
+    #   datacube
+    #   eodatasets3
 ruamel-yaml-clib==0.2.12
     # via ruamel-yaml
 s3transfer==0.13.0
     # via boto3
 scipy==1.16.0
-    # via -r docker/odc/requirements.in
+    # via
+    #   -r docker/odc/requirements.in
+    #   eodatasets3
 shapely==2.1.1
     # via
     #   antimeridian
+    #   datacube
+    #   eodatasets3
     #   odc-geo
 six==1.17.0
     # via python-dateutil
+sortedcontainers==2.4.0
+    # via distributed
 sqlalchemy==2.0.41
     # via
     #   -r docker/odc/requirements.in
     #   alembic
+    #   datacube
     #   geoalchemy2
+structlog==25.4.0
+    # via eodatasets3
+tblib==3.1.0
+    # via distributed
 toolz==1.0.0
     # via
     #   -r docker/odc/requirements.in
     #   dask
+    #   datacube
+    #   distributed
+    #   odc-apps-dc-tools
     #   odc-stac
     #   partd
+tornado==6.5.1
+    # via distributed
 typing-extensions==4.14.1
     # via
     #   aiosignal
@@ -247,16 +372,23 @@ tzdata==2025.2
 urllib3==2.5.0
     # via
     #   botocore
+    #   distributed
     #   requests
 urlpath==1.2.0
-    # via -r docker/odc/requirements.in
+    # via
+    #   -r docker/odc/requirements.in
+    #   odc-apps-dc-tools
 wrapt==1.17.2
     # via
     #   aiobotocore
     #   deprecat
 xarray==2025.7.1
     # via
+    #   datacube
+    #   eodatasets3
     #   odc-loader
     #   odc-stac
 yarl==1.20.1
     # via aiohttp
+zict==3.0.0
+    # via distributed
