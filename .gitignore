@@ -17,3 +17,5 @@ venv/
 ENV/
 datacube.conf
 *.tif
+
+docker/jupyter/full
