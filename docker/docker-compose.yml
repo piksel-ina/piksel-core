@@ -21,6 +21,7 @@ services:
     build:
       context: ../
       dockerfile: docker/odc/Dockerfile
+    platform: linux/x86_64
     environment:
       - ODC_DEFAULT_DB_USERNAME=${POSTGRES_USER}
       - ODC_DEFAULT_DB_DATABASE=${POSTGRES_DB}
@@ -45,6 +46,7 @@ services:
     build:
       context: ../
       dockerfile: docker/jupyter/Dockerfile
+    platform: linux/x86_64
     user: "jovyan" # Pangeo default user
     environment:
       # Database connection for ODC
