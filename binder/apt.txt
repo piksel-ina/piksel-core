@@ -1,0 +1,9 @@
+curl 
+git 
+gcc 
+g++ 
+build-essential 
+libpq-dev 
+postgresql-client
+python3-dev 
+libpython3-dev 

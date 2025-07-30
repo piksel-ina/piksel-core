@@ -17,5 +17,6 @@ venv/
 ENV/
 datacube.conf
 *.tif
+Miniconda3-*
 
 docker/jupyter/full
