@@ -168,7 +168,7 @@ clean:
 	fi
 
 # DataCube System and Spatial Index Commands
-.PHONY: init-db reset-db spindex-create spindex-update backup-db psql
+.PHONY: init-db reset-db spindex-create spindex-update backup-db psql, add-update-metadata
 init-db:
 	@echo "$(BLUE)Initializing ODC database for environment '$(ENVIRONMENT)'...$(NC)"
 	@echo "$(BLUE)1. Checking PostgreSQL connection...$(NC)"
@@ -182,7 +182,6 @@ init-db:
 	@echo "$(BLUE)5. Listing available products (if any)...$(NC)"
 	@$(DOCKER_COMPOSE) exec odc bash -c "datacube product list" || echo "$(YELLOW)No products available yet. This is normal for a fresh installation.$(NC)"
 	@echo "$(GREEN)ODC database initialization successful!$(NC)"
-
 
 
 reset-db:
@@ -218,8 +217,18 @@ psql:
 	@echo "$(BLUE)Connecting to PostgreSQL database...$(NC)"
 	$(DOCKER_COMPOSE) exec postgres psql -U piksel_user -d piksel_db
 
+add-update-metadata:
+	@echo "$(BLUE)Adding or updating metadata definition...$(NC)"
+	@$(DOCKER_COMPOSE) exec odc bash -c "datacube metadata --allow-unsafe /home/venv/metadata/eo3_deafrica.odc-type.yaml"
+	echo "$(GREEN)Metadata add/update complete!$(NC)"
+
 # Product commands
-.PHONY: list-products all-products add-product rm-product
+.PHONY: list-products all-products add-product rm-product check
+
+check:
+	@echo "$(BLUE)Checking system...$(NC)"
+	$(DOCKER_COMPOSE) exec odc datacube system check
+
 list-products:
 	@echo "${BLUE}Listing ODC products:${NC}"
 	$(DOCKER_COMPOSE) exec odc datacube product list
@@ -255,23 +264,29 @@ rm-product:
 LANDSATLOOK ?= https://landsatlook.usgs.gov/stac-server/
 
 # Default parameters for indexing
-Bbox ?= 114,-9,116,-7
-Date ?= 2025-01-01/2025-05-30
+Bbox ?= 105,-8,106,-5
+Date ?= 2025-01-01/2025-07-31
 CollectionS2 ?= sentinel-2-l2a
 
 # Default parameters for LSX indexing (adjust these as appropriate)
-BboxLs ?= 112,-10,118,-6
-DateLsOld ?= 2000-01-01/2000-06-30
+DateLsOld ?= 2000-01-01/2025-07-31
 CollectionLsSR ?= landsat-c2l2-sr
 CollectionLsST ?= landsat-c2l2-st
+
+LIMIT ?= 9999
 
 .PHONY: index-sentinel2 index-ls9-st index-ls8-st index-ls7-st index-ls5-st \
 	index-ls9-sr index-ls8-sr index-ls7-sr index-ls5-sr index-all
 
 # Index all products
-index-all: index-sentinel2 index-ls9-st index-ls8-st index-ls7-st index-ls5-st \
-	index-ls9-sr index-ls8-sr index-ls7-sr index-ls5-sr
+index-all: index-sentinel2 index-landsat
 	@echo "$(GREEN)All products indexed successfully!$(NC)"
+
+index-landsat-sr: index-ls9-sr index-ls8-sr index-ls7-sr index-ls5-sr
+
+index-landsat-st: index-ls9-st index-ls8-st index-ls7-st index-ls5-st
+
+index-landsat: index-landsat-sr index-landsat-st
 
 # Sentinel-2 L2A
 index-sentinel2:
@@ -293,7 +308,7 @@ index-ls9-st:
 	            --datetime='$(Date)' \
 	            --rename-product='ls9_c2l2_st' \
 				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
-	            --limit=100 \
+	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_9\"]}}" \
 
 
@@ -306,7 +321,7 @@ index-ls8-st:
 	            --datetime='$(Date)' \
 	            --rename-product='ls8_c2l2_st' \
 				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
-	            --limit=100 \
+	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_8\"]}}" \
 
 index-ls7-st:
@@ -318,7 +333,7 @@ index-ls7-st:
 	            --datetime='$(DateLsOld)' \
 	            --rename-product='ls7_c2l2_st' \
 				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
-	            --limit=100 \
+	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_7\"]}}" \
 
 index-ls5-st:
@@ -330,7 +345,7 @@ index-ls5-st:
 	            --datetime='$(DateLsOld)' \
 	            --rename-product='ls5_c2l2_st' \
 				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
-	            --limit=100 \
+	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_5\"]}}" \
 
 # Landsat Surface Reflectance
@@ -342,8 +357,8 @@ index-ls9-sr:
 	            --collections='$(CollectionLsSR)' \
 	            --datetime='$(Date)' \
 	            --rename-product='ls9_c2l2_sr' \
-				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
-	            --limit=100 \
+	            --url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
+	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_9\"]}}" \
 
 
@@ -356,7 +371,7 @@ index-ls8-sr:
 	            --datetime='$(Date)' \
 	            --rename-product='ls8_c2l2_sr' \
 				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
-	            --limit=100 \
+	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_8\"]}}" \
 
 index-ls7-sr:
@@ -368,7 +383,7 @@ index-ls7-sr:
 	            --datetime='$(DateLsOld)' \
 	            --rename-product='ls7_c2l2_sr' \
 				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
-	            --limit=100 \
+	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_7\"]}}" \
 
 index-ls5-sr:
@@ -380,7 +395,7 @@ index-ls5-sr:
 	            --datetime='$(DateLsOld)' \
 	            --rename-product='ls5_c2l2_sr' \
 				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
-	            --limit=100 \
+	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_5\"]}}" \
 
 
