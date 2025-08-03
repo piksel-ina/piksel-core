@@ -59,7 +59,7 @@ services:
 
       # Jupyter configuration
       - JUPYTER_ENABLE_LAB=yes
-      - JUPYTER_TOKEN=${JUPYTER_TOKEN:-}
+      - JUPYTER_TOKEN=
       - JUPYTER_ALLOW_INSECURE_WRITES=1
 
       # Python path configuration
@@ -89,23 +89,12 @@ services:
       start_period: 30s
     restart: always
     # Custom command to disable token authentication for local dev
-    command: >
-      bash -c "
-      eval \"$$(micromamba shell hook --shell bash)\" &&
-      micromamba activate /env &&
-      jupyter lab 
-        --ip='0.0.0.0' 
-        --port=8888 
-        --no-browser 
-        --allow-root 
-        --ServerApp.token='${JUPYTER_TOKEN:-}' 
-        --ServerApp.password='' 
-        --ServerApp.allow_origin='*'
-        --ServerApp.allow_remote_access=True
-        --ServerApp.root_dir='/home/jovyan/work'
-        --ServerApp.preferred_dir='/home/jovyan/work/notebooks'
-      "
-
+    command:
+      - /bin/bash
+      - /usr/local/bin/start-notebook.sh
+      - --NotebookApp.token=
+      - --NotebookApp.password=
+      - --NotebookApp.disable_check_xsrf=True
 networks:
   default:
     name: ${COMPOSE_PROJECT_NAME:-piksel}-net
