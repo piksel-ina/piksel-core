@@ -60,7 +60,7 @@ services:
 
       # Jupyter configuration
       - JUPYTER_ENABLE_LAB=yes
-      - JUPYTER_TOKEN=${JUPYTER_TOKEN:-}
+      - JUPYTER_TOKEN=
       - JUPYTER_ALLOW_INSECURE_WRITES=1
 
       # Python path configuration
@@ -90,17 +90,12 @@ services:
       start_period: 30s
     restart: always
     # Custom command to disable token authentication for local dev
-    command: >
-      jupyter lab 
-      --ip='0.0.0.0' 
-      --port=8888 
-      --no-browser 
-      --allow-root 
-      --ServerApp.token='' 
-      --ServerApp.password='' 
-      --ServerApp.allow_origin='*'
-      --ServerApp.allow_remote_access=True
-
+    command:
+      - /bin/bash
+      - /usr/local/bin/start-notebook.sh
+      - --NotebookApp.token=
+      - --NotebookApp.password=
+      - --NotebookApp.disable_check_xsrf=True
 networks:
   default:
     name: ${COMPOSE_PROJECT_NAME:-piksel}-net
