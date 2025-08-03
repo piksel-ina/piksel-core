@@ -1,4 +1,4 @@
-name: Piksel Test Suite
+name: Test ODC Image
 
 on:
   push:
@@ -45,13 +45,13 @@ jobs:
           make test-venv
           make test-deps
 
-      - name: Start test environment
+      - name: Build Docker images Test
         run: |
           make test-up
           # Wait for services to be ready
           sleep 10
 
-      - name: Run tests
+      - name: Run unit and integration tests
         run: |
           make test
 

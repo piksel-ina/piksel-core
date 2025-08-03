@@ -3,6 +3,7 @@
 
 # Settings
 COMPOSE_FILE := docker/docker-compose.yml
+COMPOSE_FILE_TEST := docker/docker-compose-test.yml
 PROJECT_NAME := piksel
 ENVIRONMENT ?= default
 EPSG ?= 4326
@@ -468,19 +469,19 @@ PYTEST_ARGS ?= -v
 test-up: setup-config
 	@echo "$(BLUE)Starting Piksel test services...$(NC)"
 	@export $$(grep -v '^#' .env | xargs) && \
-	docker compose --env-file .env -f $(COMPOSE_FILE) -p $(TEST_PROJECT_NAME) up -d && \
+	docker compose --env-file .env -f $(COMPOSE_FILE_TEST) -p $(TEST_PROJECT_NAME) up -d && \
 	echo "$(GREEN)Test services started with project name: $(TEST_PROJECT_NAME)$(NC)"
 
 # Stop and remove test services
 test-down:
 	@echo "$(BLUE)Stopping and removing Piksel test containers...$(NC)"
-	docker compose --env-file .env -f $(COMPOSE_FILE) -p $(TEST_PROJECT_NAME) down -v 
+	docker compose --env-file .env -f $(COMPOSE_FILE_TEST) -p $(TEST_PROJECT_NAME) down -v 
 	@echo "$(GREEN)Test environment removed$(NC)"
 
 # View logs from test services
 test-logs:
 	@echo "$(BLUE)Viewing Piksel test logs (press Ctrl+C to exit)...$(NC)"
-	docker compose --env-file .env -f $(COMPOSE_FILE) -p $(TEST_PROJECT_NAME) logs -f
+	docker compose --env-file .env -f $(COMPOSE_FILE_TEST) -p $(TEST_PROJECT_NAME) logs -f
 
 # Create a Python virtual environment for testing
 test-venv:
