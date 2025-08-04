@@ -63,6 +63,15 @@ services:
       - JUPYTER_TOKEN=
       - JUPYTER_ALLOW_INSECURE_WRITES=1
 
+      # # Enable this for jupyterhub simulation
+      # - JUPYTERHUB_SERVICE_URL=http://localhost:8081
+      # - JUPYTERHUB_API_TOKEN=fake-token-for-local-testing
+      # - JUPYTERHUB_USER=jovyan
+      # - JUPYTERHUB_BASE_URL=/
+      # - JUPYTERHUB_API_URL=http://localhost:8081/hub/api
+      # - JUPYTERHUB_OAUTH_CALLBACK_URL=http://localhost:8888/hub/oauth_callback
+      # - JUPYTERHUB_CLIENT_ID=jupyterhub-user-jovyan
+
       # Python path configuration
       - PYTHONPATH=/home/jovyan/work/notebooks:/home/jovyan/work
 
@@ -91,11 +100,15 @@ services:
     restart: always
     # Custom command to disable token authentication for local dev
     command:
-      - /bin/bash
-      - /usr/local/bin/start-notebook.sh
+      - jupyter
+      - lab
+      - --ip=0.0.0.0
+      - --allow-root
+      - --no-browser
       - --NotebookApp.token=
       - --NotebookApp.password=
-      - --NotebookApp.disable_check_xsrf=True
+      # # Uncomment this to enable JupyterHub simulation
+      # - jupyterhub-singleuser
 networks:
   default:
     name: ${COMPOSE_PROJECT_NAME:-piksel}-net
