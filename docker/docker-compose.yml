@@ -85,7 +85,6 @@ services:
       # Uncomment this to use basic notebooks in this repo
       # - ../notebooks:/home/jovyan/work/notebooks
       - ../../piksel-notebooks:/home/jovyan/work/notebooks # this map to cloned piksel-notebooks repo
-      - ../../jupyterlab-myst-quickstart:/home/jovyan/work/myst # this map to cloned myst quickstart repo
       - ../products:/home/jovyan/work/products
       - ../data:/home/jovyan/work/data
     depends_on:
