@@ -169,7 +169,7 @@ clean:
 	fi
 
 # DataCube System and Spatial Index Commands
-.PHONY: init-db reset-db spindex-create spindex-update backup-db psql, add-update-metadata
+.PHONY: init-db reset-db spindex-create spindex-update backup-db psql, update-metadata
 init-db:
 	@echo "$(BLUE)Initializing ODC database for environment '$(ENVIRONMENT)'...$(NC)"
 	@echo "$(BLUE)1. Checking PostgreSQL connection...$(NC)"
@@ -222,6 +222,10 @@ update-metadata:
 	@echo "$(BLUE)Adding or updating metadata definition...$(NC)"
 	@$(DOCKER_COMPOSE) exec odc bash -c "datacube metadata update --allow-unsafe /home/venv/metadata/custom_metadata.odc-type.yaml"
 	echo "$(GREEN)Metadata add/update complete!$(NC)"
+
+cubedash-init: 
+	@echo "$(BLUE)Initializing Datacube Explorer...$(NC)"
+	$(DOCKER_COMPOSE) exec datacube-explorer cubedash-gen --init --all
 
 # Product commands
 .PHONY: list-products all-products add-product rm-product check

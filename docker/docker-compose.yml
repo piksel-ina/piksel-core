@@ -48,7 +48,7 @@ services:
       context: ../
       dockerfile: docker/jupyter/Dockerfile
     platform: linux/x86_64
-    user: "jovyan" # Pangeo default user
+    user: "jovyan"
     environment:
       # Database connection for ODC
       - ODC_DEFAULT_DB_USERNAME=${POSTGRES_USER}
@@ -63,15 +63,6 @@ services:
       - JUPYTER_TOKEN=
       - JUPYTER_ALLOW_INSECURE_WRITES=1
 
-      # # Enable this for jupyterhub simulation
-      # - JUPYTERHUB_SERVICE_URL=http://localhost:8081
-      # - JUPYTERHUB_API_TOKEN=fake-token-for-local-testing
-      # - JUPYTERHUB_USER=jovyan
-      # - JUPYTERHUB_BASE_URL=/
-      # - JUPYTERHUB_API_URL=http://localhost:8081/hub/api
-      # - JUPYTERHUB_OAUTH_CALLBACK_URL=http://localhost:8888/hub/oauth_callback
-      # - JUPYTERHUB_CLIENT_ID=jupyterhub-user-jovyan
-
       # Python path configuration
       - PYTHONPATH=/home/jovyan/work/notebooks:/home/jovyan/work
 
@@ -83,14 +74,12 @@ services:
       - "${JUPYTER_PORT:-8888}:8888"
     volumes:
       # Uncomment this to use basic notebooks in this repo
-      # - ../notebooks:/home/jovyan/work/notebooks
-      - ../../piksel-notebooks:/home/jovyan/work/notebooks # this map to cloned piksel-notebooks repo
+      - ../notebooks:/home/jovyan/work/notebooks
       - ../products:/home/jovyan/work/products
       - ../data:/home/jovyan/work/data
     depends_on:
       - postgres
       - odc
-    # Updated healthcheck for JupyterLab
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888/lab"]
       interval: 30s
@@ -98,7 +87,6 @@ services:
       retries: 3
       start_period: 30s
     restart: always
-    # Custom command to disable token authentication for local dev
     command:
       - jupyter
       - lab
@@ -107,8 +95,47 @@ services:
       - --no-browser
       - --NotebookApp.token=
       - --NotebookApp.password=
-      # # Uncomment this to enable JupyterHub simulation
-      # - jupyterhub-singleuser
+
+  # --- Uncomment the following to enable the datacube-explorer web app ---
+  # Run 'make cubedash-init' to initialize explorer
+  # datacube-explorer:
+  #   image: opendatacube/explorer:3.0.1
+  #   build:
+  #     args:
+  #       ENVIRONMENT: deployment
+  #   platform: linux/x86_64
+  #   environment:
+  #     # Database connection for PostGIS
+  #     - ODC_DEFAULT_DB_USERNAME=${POSTGRES_USER}
+  #     - ODC_DEFAULT_DB_DATABASE=${POSTGRES_DB}
+  #     - ODC_DEFAULT_DB_HOSTNAME=${POSTGRES_HOST:-postgres}
+  #     - ODC_DEFAULT_DB_PASSWORD=${POSTGRES_PASSWORD}
+  #     - ODC_DEFAULT_DB_PORT=${POSTGRES_PORT:-5432}
+  #     - ODC_DEFAULT_INDEX_DRIVER=postgis
+  #     - ODC_POSTGIS_INDEX_DRIVER=postgis
+  #     - ODC_DEFAULT_DB_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB}
+  #     - ODC_POSTGIS_DB_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB}
+
+  #     # Explorer specific settings
+  #     - FLASK_APP=cubedash
+  #     - FLASK_ENV=development
+  #     - FLASK_DEBUG=1
+  #   ports:
+  #     - "${EXPLORER_PORT:-80}:8080"
+
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     odc:
+  #       condition: service_healthy
+  #   restart: always
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 60s
+
 networks:
   default:
     name: ${COMPOSE_PROJECT_NAME:-piksel}-net
