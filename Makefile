@@ -218,9 +218,9 @@ psql:
 	@echo "$(BLUE)Connecting to PostgreSQL database...$(NC)"
 	$(DOCKER_COMPOSE) exec postgres psql -U piksel_user -d piksel_db
 
-add-update-metadata:
+update-metadata:
 	@echo "$(BLUE)Adding or updating metadata definition...$(NC)"
-	@$(DOCKER_COMPOSE) exec odc bash -c "datacube metadata --allow-unsafe /home/venv/metadata/eo3_deafrica.odc-type.yaml"
+	@$(DOCKER_COMPOSE) exec odc bash -c "datacube metadata update --allow-unsafe /home/venv/metadata/custom_metadata.odc-type.yaml"
 	echo "$(GREEN)Metadata add/update complete!$(NC)"
 
 # Product commands
@@ -270,7 +270,7 @@ Date ?= 2025-01-01/2025-07-31
 CollectionS2 ?= sentinel-2-l2a
 
 # Default parameters for LSX indexing (adjust these as appropriate)
-DateLsOld ?= 2000-01-01/2025-07-31
+DateLsOld ?= 2000-01-01/2000-07-31
 CollectionLsSR ?= landsat-c2l2-sr
 CollectionLsST ?= landsat-c2l2-st
 
