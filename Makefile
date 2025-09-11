@@ -70,6 +70,7 @@ help:
 	@echo "  make index-ls8-sr         - Index Landsat-8 Surface Reflectance data"
 	@echo "  make index-ls7-sr         - Index Landsat-7 Surface Reflectance data"
 	@echo "  make index-ls5-sr         - Index Landsat-5 Surface Reflectance data"
+	@echo "  make index-s1-rtc         - Index Sentinel-1 RTC data"
 	@echo ""
 	@echo "${GREEN}Testing Commands:${NC}"
 	@echo "  make test                   - Run all tests with minimal output"
@@ -280,11 +281,11 @@ CollectionLsST ?= landsat-c2l2-st
 
 LIMIT ?= 9999
 
-.PHONY: index-sentinel2 index-ls9-st index-ls8-st index-ls7-st index-ls5-st \
+.PHONY: index-sentinel2 index-s1-rtc index-ls9-st index-ls8-st index-ls7-st index-ls5-st \
 	index-ls9-sr index-ls8-sr index-ls7-sr index-ls5-sr index-all
 
 # Index all products
-index-all: index-sentinel2 index-landsat
+index-all: index-sentinel2 index-landsat index-s1-rtc
 	@echo "$(GREEN)All products indexed successfully!$(NC)"
 
 index-landsat-sr: index-ls9-sr index-ls8-sr index-ls7-sr index-ls5-sr
@@ -403,6 +404,15 @@ index-ls5-sr:
 	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_5\"]}}" \
 
+index-s1-rtc:
+	@echo "$(BLUE)Indexing Sentinel-1 RTC data...$(NC)"
+	$(DOCKER_COMPOSE) exec odc \
+	  stac-to-dc --catalog-href='https://planetarycomputer.microsoft.com/api/stac/v1/' \
+	            --bbox='$(Bbox)' \
+	            --collections='sentinel-1-rtc' \
+	            --datetime='$(Date)' \
+	            --rename-product='sentinel_1_rtc'
+	            --limit=$(LIMIT) 
 
 # Utility commands
 .PHONY: bash-odc bash-jupyter jupyter-token
