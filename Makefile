@@ -411,7 +411,7 @@ index-s1-rtc:
 	            --bbox='$(Bbox)' \
 	            --collections='sentinel-1-rtc' \
 	            --datetime='$(Date)' \
-	            --rename-product='sentinel_1_rtc'
+	            --rename-product='s1_rtc'
 	            --limit=$(LIMIT) 
 
 # Utility commands

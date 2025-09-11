@@ -1,10 +1,10 @@
-name: sentinel_1_rtc
+name: s1_rtc
 description: Radiometrically terrain corrected SAR imagery derived from the Sentinel 1 Level 1 GRD product
 metadata_type: eo3
 
 metadata:
   product:
-    name: sentinel_1_rtc
+    name: s1_rtc
   properties:
     "eo:platform": Sentinel-1A/1B
 
