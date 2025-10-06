@@ -25,8 +25,13 @@ help:
 	@echo "${BLUE}Piksel Platform Management Commands ${NC}"
 	@echo "${GREEN}Basic Commands:${NC}"
 	@echo "  make init          - Initialize environment files and configuration"
-	@echo "  make build         - Build all Docker containers"
-	@echo "  make up            - Start all services"
+	@echo "  make build         - Build all Docker images"
+	@echo "  make build-odc     - Build ODC Docker images"
+	@echo "  make build-jupyter - Build Jupyter Docker images"
+	@echo "  make up            - Start ODC only"
+	@echo "  make up-all        - Start ODC, Jupyter and Explorer services"
+	@echo "  make up-jupyter    - Start ODC with Jupyter services"
+	@echo "  make up-explorer   - Start ODC with Datacube Explorer services"
 	@echo "  make stop          - Stop all project containers (without removing them)"
 	@echo "  make down          - Stop and remove all project containers (but preserve volumes)"
 	@echo "  make rmvol         - Stop and remove project containers and volumes"
@@ -93,10 +98,16 @@ help:
 
 
 # Docker commands
-.PHONY: build up stop down rmvol restart ps logs clean setup-config init check-env check-config
-build:
-	@echo "$(BLUE)Building Piksel containers...$(NC)"
-	$(DOCKER_COMPOSE) build
+.PHONY: build-odc build-jupyter build up up-jupyter up-explorer stop down rmvol restart ps logs clean setup-config init check-env check-config
+build-odc:
+	@echo "$(BLUE)Building odc containers...$(NC)"
+	$(DOCKER_COMPOSE) build odc
+
+build-jupyter:
+	@echo "$(BLUE)Building jupyter containers...$(NC)"
+	$(DOCKER_COMPOSE) build jupyter
+
+build: build-odc build-jupyter
 
 setup-config:
 	@echo "$(BLUE)Generating datacube.conf from template...$(NC)"
@@ -130,10 +141,31 @@ check-config:
 	@grep -v '^#' .env | sort
 
 up: setup-config
-	@echo "$(BLUE)Starting Piksel services...$(NC)"
+	@echo "$(BLUE)Starting Piksel Base services...$(NC)"
 	@export $$(grep -v '^#' .env | xargs) && \
 	$(DOCKER_COMPOSE) up -d && \
+	echo "$(BLUE)ODC and PostgreSQL Services Started$(NC)" && \
+	echo "To Start With Jupyter Notebook: $(BLUE)make up-jupyter$(NC)" && \
+	echo "To Start With Datacube Explorer: $(BLUE)make up-explorer$(NC)"
+
+up-jupyter: setup-config
+	@echo "$(BLUE)Starting Piksel Base services...$(NC)"
+	@export $$(grep -v '^#' .env | xargs) && \
+	COMPOSE_PROFILES=jupyter $(DOCKER_COMPOSE) up -d && \
 	echo "$(GREEN)Services started. Jupyter is available at http://localhost:$$JUPYTER_PORT$(NC)"
+
+up-explorer: setup-config
+	@echo "$(BLUE)Starting Piksel Base services...$(NC)"
+	@export $$(grep -v '^#' .env | xargs) && \
+	COMPOSE_PROFILES=explorer $(DOCKER_COMPOSE) up -d && \
+	echo "$(GREEN)Services started. Datacube Explorer is available at http://localhost:$$EXPLORER_PORT$(NC)"
+
+up-all: setup-config
+	@echo "$(BLUE)Starting Piksel Base services...$(NC)"
+	@export $$(grep -v '^#' .env | xargs) && \
+	COMPOSE_PROFILES=jupyter,explorer $(DOCKER_COMPOSE) up -d && \
+	echo "$(GREEN)Services started. Jupyter is available at http://localhost:$$JUPYTER_PORT$(NC)" && \
+	echo "$(GREEN)Services started. Datacube Explorer is available at http://localhost:$$EXPLORER_PORT$(NC)"
 
 stop:
 	@echo "$(BLUE)Stopping Piksel services...$(NC)"
@@ -141,7 +173,7 @@ stop:
 
 down:
 	@echo "$(BLUE)Stopping and removing Piksel containers (preserving volumes)...$(NC)"
-	$(DOCKER_COMPOSE) down
+	COMPOSE_PROFILES=jupyter,explorer $(DOCKER_COMPOSE) down
 
 rmvol:
 	@echo "$(BLUE)Stopping and removing Piksel containers and volumes...$(NC)"
