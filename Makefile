@@ -25,6 +25,7 @@ help:
 	@echo "${BLUE}Piksel Platform Management Commands ${NC}"
 	@echo "${GREEN}Basic Commands:${NC}"
 	@echo "  make init          - Initialize environment files and configuration"
+	@echo "  make ows-init      - Initialize OWS (after database is set up)"
 	@echo "  make build         - Build all Docker images"
 	@echo "  make build-odc     - Build ODC Docker images"
 	@echo "  make build-jupyter - Build Jupyter Docker images"
@@ -32,6 +33,7 @@ help:
 	@echo "  make up-all        - Start ODC, Jupyter and Explorer services"
 	@echo "  make up-jupyter    - Start ODC with Jupyter services"
 	@echo "  make up-explorer   - Start ODC with Datacube Explorer services"
+	@echo "  make up-ows     	- Start ODC with Open Web Services (OWS)"
 	@echo "  make stop          - Stop all project containers (without removing them)"
 	@echo "  make down          - Stop and remove all project containers (but preserve volumes)"
 	@echo "  make rmvol         - Stop and remove project containers and volumes"
@@ -52,6 +54,7 @@ help:
 	@echo "  make spindex-update   - Populates or refreshes the spatial index"
 	@echo "  make backup-db        - Backup the database"
 	@echo "  make psql             - Open an interactive PostgreSQL shell"
+	@echo "  make update-metadata  - Add or update metadata definition"
 	@echo ""
 	@echo "${GREEN}Product Commands:${NC}"
 	@echo "  make list-products                   - List all registered products"
@@ -98,7 +101,7 @@ help:
 
 
 # Docker commands
-.PHONY: build-odc build-jupyter build up up-jupyter up-explorer stop down rmvol restart ps logs clean setup-config init check-env check-config
+.PHONY: build-odc build-jupyter build up up-jupyter up-explorer stop down rmvol restart ps logs clean setup-config init check-env check-config ows-init up-ows
 build-odc:
 	@echo "$(BLUE)Building odc containers...$(NC)"
 	$(DOCKER_COMPOSE) build odc
@@ -129,7 +132,7 @@ ows-init: setup-config
 	@export $$(grep -v '^#' .env | xargs) && \
 	echo "${BLUE}Check Datacube Connection:${NC}" && \
 	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube system check && \
-	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update --schema --write-role $$POSTGRES_USER && \
+	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update --schema --write-role $$ODC_DEFAULT_DB_USERNAME && \
 	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update s2_l2a && \
 	echo "$(GREEN)OWS Initialized$(NC)"
 
@@ -178,7 +181,7 @@ up-ows: setup-config
 up-all: setup-config
 	@echo "$(BLUE)Starting Piksel Base services...$(NC)"
 	@export $$(grep -v '^#' .env | xargs) && \
-	COMPOSE_PROFILES=jupyter,explorer $(DOCKER_COMPOSE) up -d && \
+	COMPOSE_PROFILES=jupyter,explorer,ows $(DOCKER_COMPOSE) up -d && \
 	echo "$(GREEN)Services started. Jupyter is available at http://localhost:$$JUPYTER_PORT$(NC)" && \
 	echo "$(GREEN)Services started. Datacube Explorer is available at http://localhost:$$EXPLORER_PORT$(NC)"
 
@@ -188,7 +191,7 @@ stop:
 
 down:
 	@echo "$(BLUE)Stopping and removing Piksel containers (preserving volumes)...$(NC)"
-	COMPOSE_PROFILES=jupyter,explorer $(DOCKER_COMPOSE) down
+	COMPOSE_PROFILES=jupyter,explorer,ows $(DOCKER_COMPOSE) down
 
 rmvol:
 	@echo "$(BLUE)Stopping and removing Piksel containers and volumes...$(NC)"

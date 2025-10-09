@@ -177,7 +177,7 @@ services:
 
 networks:
   default:
-    name: ${COMPOSE_PROJECT_NAME:-piksel}-net
+    name: ${PROJECT_NAME:-piksel}-net
 
 volumes:
   postgres_data:
