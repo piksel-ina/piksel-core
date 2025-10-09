@@ -124,6 +124,15 @@ init:
 	fi
 	@$(MAKE) setup-config
 
+ows-init: setup-config
+	@echo "$(BLUE)Initializing OWS...$(NC)"
+	@export $$(grep -v '^#' .env | xargs) && \
+	echo "${BLUE}Check Datacube Connection:${NC}" && \
+	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube system check && \
+	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update --schema --write-role $$POSTGRES_USER && \
+	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update s2_l2a && \
+	echo "$(GREEN)OWS Initialized$(NC)"
+
 check-env:
 	@echo "$(BLUE)Environment variables:$(NC)"
 	@grep -v '^#' .env | sort
@@ -159,6 +168,12 @@ up-explorer: setup-config
 	@export $$(grep -v '^#' .env | xargs) && \
 	COMPOSE_PROFILES=explorer $(DOCKER_COMPOSE) up -d && \
 	echo "$(GREEN)Services started. Datacube Explorer is available at http://localhost:$$EXPLORER_PORT$(NC)"
+
+up-ows: setup-config
+	@echo "$(BLUE)Starting Piksel OWS service...$(NC)"
+	@export $$(grep -v '^#' .env | xargs) && \
+	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) up -d && \
+	echo "$(GREEN)OWS started. Available at http://localhost:$${OWS_PORT:-8000}$(NC)"
 
 up-all: setup-config
 	@echo "$(BLUE)Starting Piksel Base services...$(NC)"

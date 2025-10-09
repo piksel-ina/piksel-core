@@ -74,7 +74,6 @@ services:
     ports:
       - "${JUPYTER_PORT:-8888}:8888"
     volumes:
-      # Uncomment this to use basic notebooks in this repo
       - ../notebooks:/home/jovyan/work/notebooks
       - ../products:/home/jovyan/work/products
       - ../data:/home/jovyan/work/data
@@ -132,6 +131,45 @@ services:
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # OpenDataCube OWS (Open Web Services)
+  ows:
+    profiles: [ows]
+    image: opendatacube/ows:1.9.0rc1
+    platform: linux/x86_64
+    environment:
+      - ODC_DEFAULT_DB_USERNAME=${POSTGRES_USER}
+      - ODC_DEFAULT_DB_DATABASE=${POSTGRES_DB}
+      - ODC_DEFAULT_DB_HOSTNAME=${POSTGRES_HOST:-postgres}
+      - ODC_DEFAULT_DB_PASSWORD=${POSTGRES_PASSWORD}
+      - ODC_DEFAULT_DB_PORT=${POSTGRES_PORT:-5432}
+      - ODC_CONFIG_PATH=/env/config/datacube.conf
+      - ODC_DEFAULT_INDEX_DRIVER=postgis
+      - ODC_POSTGIS_INDEX_DRIVER=postgis
+      - DATACUBE_OWS_CFG=ows_config.ows_cfg
+      - PYTHONPATH=/env/config
+
+    ports:
+      - "${OWS_PORT:-8000}:8000"
+
+    volumes:
+      - ./ows/ows_config:/env/config/ows_config:ro
+      - ../datacube.conf:/env/config/datacube.conf
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      odc:
+        condition: service_healthy
+
+    restart: always
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 30s
       timeout: 10s
       retries: 3
