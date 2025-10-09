@@ -1,0 +1,3 @@
+from .resource_limits import DEFAULT_LIMITS, SENTINEL2_LIMITS
+
+__all__ = ['DEFAULT_LIMITS', 'SENTINEL2_LIMITS']
