@@ -1,5 +1,5 @@
 # Build stage
-ARG GDAL_VERSION=ubuntu-small-3.11.0
+ARG GDAL_VERSION=ubuntu-small-3.10.3
 FROM ghcr.io/osgeo/gdal:${GDAL_VERSION} AS builder
 WORKDIR /app
 
@@ -11,9 +11,14 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 # Install essential build dependencies
 RUN apt-get update && apt-get install -y \
       git \
+      gcc \
+      g++ \
       libpq-dev \
-      build-essential \
+      libgeos-dev \
+      libhdf5-dev \
+      libnetcdf-dev \
       python3-dev \
+      build-essential \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -22,8 +27,11 @@ ENV VIRTUAL_ENV=/home/venv
 RUN uv venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Copy requirements
-COPY docker/odc/requirements.txt /app/requirements.txt
+# Copy requirements.in and compile to requirements.txt
+COPY docker/ows/requirements.in /app/requirements.in
+
+# Compile dependencies with UV
+RUN uv pip compile requirements.in -o requirements.txt
 
 # Install Python packages with UV
 RUN uv pip install --no-cache -r requirements.txt
@@ -34,9 +42,11 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y \
       postgresql-client \
       gettext-base \
+      curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -44,22 +54,30 @@ RUN apt-get update && apt-get install -y \
 COPY --from=builder /home/venv /home/venv
 ENV PATH="/home/venv/bin:$PATH"
 
-# Copy configuration to root's home
+# GDAL optimizations for OWS
+ENV GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR" \
+    CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif,.tiff" \
+    GDAL_HTTP_MAX_RETRY="10" \
+    GDAL_HTTP_RETRY_DELAY="1"
+
+# Copy datacube configuration template to root's home
 COPY datacube.conf.template /root/.datacube.conf.template
 
-# Create user 'odc'
-RUN useradd -m -s /bin/bash odc
+# Create user 'ows'
+RUN useradd -m -s /bin/bash ows
 
-# Copy template to odc's home and set permissions
-COPY datacube.conf.template /home/odc/.datacube.conf.template
-RUN chown odc:odc /home/odc/.datacube.conf.template
+# Copy template to ows's home and set permissions
+COPY datacube.conf.template /home/ows/.datacube.conf.template
+RUN chown ows:ows /home/ows/.datacube.conf.template
 
 # Copy entrypoint
-COPY docker/odc/entrypoint.sh /entrypoint.sh
+COPY docker/ows/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-USER odc
-WORKDIR /home/odc/app
+USER ows
+WORKDIR /home/ows
+
+EXPOSE 8000
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["tail", "-f", "/dev/null"]
+CMD ["gunicorn", "-b", "0.0.0.0:8000", "--workers=3", "-k", "gevent", "--timeout", "121", "--log-level", "info", "--worker-tmp-dir", "/dev/shm", "datacube_ows.wsgi"]

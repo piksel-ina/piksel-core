@@ -37,7 +37,7 @@ services:
     restart: always
     command: tail -f /dev/null
     healthcheck:
-      test: ["CMD", "datacube", "--version"]
+      test: ["CMD", "test", "-d", "/home/venv/bin"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -139,7 +139,9 @@ services:
   # OpenDataCube OWS (Open Web Services)
   ows:
     profiles: [ows]
-    image: opendatacube/ows:1.9.0rc1
+    build:
+      context: ../
+      dockerfile: docker/ows/Dockerfile
     platform: linux/x86_64
     environment:
       - ODC_DEFAULT_DB_USERNAME=${POSTGRES_USER}
@@ -152,7 +154,6 @@ services:
       - ODC_POSTGIS_INDEX_DRIVER=postgis
       - DATACUBE_OWS_CFG=ows_config.ows_cfg
       - PYTHONPATH=/env/config
-
     ports:
       - "${OWS_PORT:-8000}:8000"
 

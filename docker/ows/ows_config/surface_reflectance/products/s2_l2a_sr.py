@@ -9,21 +9,32 @@ from ..bands.sentinel2_bands import SENTINEL2_BANDS_INFO, SENTINEL2_BANDS
 # Sentinel-2 Surface Reflectance Layer
 s2_l2a_layer = {
     "title": "Sentinel-2 L2A Surface Reflectance",
-    "name": "s2_l2a",
     "abstract": """
     Sentinel-2 Level-2A Surface Reflectance product.
     Atmospherically corrected surface reflectance from the MSI sensor.
     10m spatial resolution for visible and NIR bands, 5-day revisit over Indonesia.
     """,
 
-    "product_name": "s2_l2a",
-    "bands": SENTINEL2_BANDS,
-    "dynamic": True,
-    
-    # Spatial configuration
-    "native_crs": "EPSG:3857",  
-    "native_resolution": [10.0, -10.0], 
+    "keywords": [
+        "sentinel",
+        "sentinel-2",
+        "setinel-2a",
+        "surface reflectance",
+        "s2_l2a",
+        "sentinel 2",
+    ],
 
+    "name": "s2_l2a",
+    "product_name": "s2_l2a",
+    "default_time": "latest",
+
+
+    "bands": SENTINEL2_BANDS,
+    # "dynamic": True,
+
+    "native_crs": "EPSG:3857",
+    "native_resolution": [10.0, -10.0],
+    
     # Image processing
     "image_processing": {
         "extent_mask_func": "datacube_ows.ogc_utils.mask_by_val",

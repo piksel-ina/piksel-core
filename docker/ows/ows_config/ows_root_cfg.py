@@ -10,10 +10,9 @@ Earth observation data and derived products from Digital Earth Indonesia.
 """
 
 service_keywords = [
-    "landsat",
-    "sentinel",
     "digital earth",
-    "digital earth indonesia"
+    "digital earth indonesia",
+    "datacube ows"
 ]
 
 # Contact information

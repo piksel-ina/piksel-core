@@ -1,0 +1,8 @@
+# Core datacube-ows
+datacube-ows==1.9.5
+gunicorn
+gevent
+psycopg2
+datacube
+Pillow
+rasterio

@@ -26,7 +26,7 @@ help:
 	@echo "${GREEN}Basic Commands:${NC}"
 	@echo "  make init          - Initialize environment files and configuration"
 	@echo "  make ows-init      - Initialize OWS (after database is set up)"
-	@echo "  make build         - Build all Docker images"
+	@echo "  make build-all		- Build all Docker images"
 	@echo "  make build-odc     - Build ODC Docker images"
 	@echo "  make build-jupyter - Build Jupyter Docker images"
 	@echo "  make up            - Start ODC only"
@@ -105,16 +105,21 @@ help:
 
 
 # Docker commands
-.PHONY: build-odc build-jupyter build up up-jupyter up-explorer stop down rmvol restart ps logs clean setup-config init check-env check-config ows-init up-ows
+.PHONY: build-odc build-jupyter build-ows build-all up up-jupyter up-explorer stop down rmvol restart ps logs clean setup-config init check-env check-config ows-init up-ows
 build-odc:
-	@echo "$(BLUE)Building odc containers...$(NC)"
+	@echo "$(BLUE)Building odc docker image...$(NC)"
 	$(DOCKER_COMPOSE) build odc
 
 build-jupyter:
-	@echo "$(BLUE)Building jupyter containers...$(NC)"
+	@echo "$(BLUE)Building jupyter docker image...$(NC)"
 	$(DOCKER_COMPOSE) build jupyter
 
-build: build-odc build-jupyter
+build-ows:
+	@echo "$(BLUE)Building ows docker image...$(NC)"
+	$(DOCKER_COMPOSE) build ows
+
+build-all: build-odc build-jupyter build-ows
+	@echo "$(GREEN)All Docker images built successfully!$(NC)"
 
 setup-config:
 	@echo "$(BLUE)Generating datacube.conf from template...$(NC)"
