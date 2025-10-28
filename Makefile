@@ -90,13 +90,17 @@ help:
 	@echo "  make test-logs              - View test environment logs"
 	@echo "  make test-deps              - Install test dependencies"
 	@echo ""
+	@echo "${GREEN}Dependency Management Commands:${NC}"
+	@echo "  make compile-deps          - Compile all dependencies (ODC, Jupyter, Test)"
+	@echo "  make compile-odc-deps      - Compile only ODC dependencies"
+	@echo "  make compile-jupyter-deps  - Compile only Jupyter dependencies"
+	@echo "  make compile-test-deps     - Compile only test dependencies"
+	@echo "  make update-deps           - Update all dependencies to latest versions"
+	@echo ""
 	@echo "${GREEN}Utility Commands:${NC}"
 	@echo "  make bash-odc               - Open a shell in the ODC container"
 	@echo "  make bash-jupyter           - Open a shell in the Jupyter container"
 	@echo "  make jupyter-token          - Get the Jupyter token"
-	@echo "  make compile-deps           - Compile dependencies from requirements.in to requirements.txt"
-	@echo "  make update-deps            - Update all dependencies to their latest versions"
-	@echo "  make verify-deps            - Verify dependencies are correctly installed"
 	@echo ""
 
 
@@ -263,7 +267,7 @@ backup-db:
 	@mkdir -p ./backups
 	@timestamp=$$(date +%Y%m%d_%H%M%S); \
 	$(DOCKER_COMPOSE) exec -T postgres pg_dump -U piksel_user piksel_db | gzip > ./backups/piksel_db_$$timestamp.sql.gz; \
-	echo "$(GREEN)Database backup created in ./backups$(NC)"
+	@echo "$(GREEN)Database backup created in ./backups$(NC)"
 
 psql:
 	@echo "$(BLUE)Connecting to PostgreSQL database...$(NC)"
@@ -272,7 +276,7 @@ psql:
 update-metadata:
 	@echo "$(BLUE)Adding or updating metadata definition...$(NC)"
 	@$(DOCKER_COMPOSE) exec odc bash -c "datacube metadata update --allow-unsafe /home/venv/metadata/custom_metadata.odc-type.yaml"
-	echo "$(GREEN)Metadata add/update complete!$(NC)"
+	@echo "$(GREEN)Metadata add/update complete!$(NC)"
 
 cubedash-init: 
 	@echo "$(BLUE)Initializing Datacube Explorer...$(NC)"
@@ -485,41 +489,35 @@ jupyter-token:
 	fi
 
 # Dependencies management commands
-.PHONY: compile-deps update-deps verify-deps compile-test-deps test-container
+.PHONY: compile-deps compile-odc-deps compile-jupyter-deps  update-deps
 
-compile-deps:
-	@echo "$(BLUE)Installing GDAL system dependencies...$(NC)"
-	@sudo apt-get update && sudo apt-get install -y libgdal-dev gdal-bin
+# Compile all dependencies
+compile-deps: compile-odc-deps compile-jupyter-deps 
+	@echo "$(GREEN)All dependencies compiled successfully!$(NC)"
 
-	@echo "$(BLUE)Compiling dependencies using a Python virtual environment...$(NC)"
-	@python3 -m venv .venv
-	@. .venv/bin/activate && \
-		pip install --upgrade pip && \
-		pip install pip-tools && \
-		export GDAL_VERSION=$$(gdal-config --version) && \
-		pip install "GDAL==$${GDAL_VERSION}" && \
-		pip-compile docker/odc/requirements.in # && \
-		# pip-compile docker/jupyter/requirements.in -o docker/jupyter/requirements.jupyter.txt
-	@echo "$(GREEN)Dependencies compiled successfully!$(NC)"
-	@echo "Note: You can remove the virtual environment with 'rm -rf .venv' if desired"
+# Compile ODC dependencies
+compile-odc-deps:
+	@echo "$(BLUE)Compiling ODC dependencies using uv...$(NC)"
+	@command -v uv >/dev/null 2>&1 || curl -LsSf https://astral.sh/uv/install.sh | sh
+	@uv pip compile docker/odc/requirements.in -o docker/odc/requirements.txt
+	@echo "$(GREEN)ODC dependencies compiled!$(NC)"
 
+# Compile Jupyter dependencies
+compile-jupyter-deps:
+	@echo "$(BLUE)Compiling Jupyter dependencies using uv...$(NC)"
+	@command -v uv >/dev/null 2>&1 || curl -LsSf https://astral.sh/uv/install.sh | sh
+	@uv pip compile docker/jupyter/requirements.in -o docker/jupyter/requirements.txt
+	@echo "$(GREEN)Jupyter dependencies compiled!$(NC)"
 
-
+# Update all dependencies to latest versions
 update-deps:
-	@echo "$(BLUE)Updating all dependencies to their latest versions...$(NC)"
-	@docker run --rm -v $(shell pwd):/app -w /app python:3.12 \
-		bash -c "apt-get update && apt-get install -y libpq-dev && \
-		pip install pip-tools && \
-		pip-compile --upgrade docker/odc/requirements.in"
-	@echo "$(GREEN)Dependencies updated successfully!$(NC)"
-
-verify-deps:
-	@echo "$(BLUE)Verifying dependency installation (dry run)...$(NC)"
-	@docker run --rm -v $(shell pwd):/app -w /app python:3.12 \
-		bash -c 'apt-get update && apt-get install -y libpq-dev gdal-bin libgdal-dev && \
-		echo "\n\033[32mPackages that would be installed:\033[0m" && \
-		pip install --dry-run -r docker/odc/requirements.txt | grep -v "^Requirement already satisfied"'
-	@echo "$(GREEN)Dependencies verified!$(NC)"
+	@echo "$(BLUE)Updating all dependencies to their latest versions using uv...$(NC)"
+	@command -v uv >/dev/null 2>&1 || curl -LsSf https://astral.sh/uv/install.sh | sh
+	@echo "$(YELLOW)Updating ODC dependencies...$(NC)"
+	@uv pip compile docker/odc/requirements.in -o docker/odc/requirements.txt --upgrade
+	@echo "$(YELLOW)Updating Jupyter dependencies...$(NC)"
+	@uv pip compile docker/jupyter/requirements.in -o docker/jupyter/requirements.txt --upgrade
+	@echo "$(GREEN)All dependencies updated successfully!$(NC)"
 
 # Test Settings
 TEST_PROJECT_NAME := piksel-test
