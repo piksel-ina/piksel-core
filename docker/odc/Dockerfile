@@ -5,36 +5,28 @@ WORKDIR /app
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install build dependencies
+# Install UV from Astral
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Install essential build dependencies
 RUN apt-get update && apt-get install -y \
-      python3-full \
-      python3-dev \
-      python3-venv \
       git \
-      curl \
-      ca-certificates \
-      build-essential \
       libpq-dev \
-      postgresql-client \
-      postgis \
-      gettext-base \
+      build-essential \
+      python3-dev \
     && apt-get clean \
-    && rm -rf /var/lib/{apt,dpkg,cache,log}
+    && rm -rf /var/lib/apt/lists/*
 
-# Create and activate virtual environment
-RUN python3 -m venv /home/venv
-ENV PATH="/home/venv/bin:$PATH"
+# Create virtual environment with UV
+ENV VIRTUAL_ENV=/home/venv
+RUN uv venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
+# Copy requirements
 COPY docker/odc/requirements.txt /app/requirements.txt
 
-# Install Python packages
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Install ODC packages from GitHub
-RUN pip install --no-cache-dir --no-deps \
-    "git+https://github.com/opendatacube/datacube-core.git@1.9.6" \
-    "odc-apps-dc-tools==1.9.3" \
-    "git+https://github.com/opendatacube/eo-datasets.git@integrate-1.9"
+# Install Python packages with UV
+RUN uv pip install --no-cache -r requirements.txt
 
 # Runtime stage
 FROM ghcr.io/osgeo/gdal:${GDAL_VERSION}
@@ -42,13 +34,11 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-# Install runtime dependencies only
 RUN apt-get update && apt-get install -y \
-      python3-minimal \
       postgresql-client \
       gettext-base \
     && apt-get clean \
-    && rm -rf /var/lib/{apt,dpkg,cache,log}
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy virtual environment from builder
 COPY --from=builder /home/venv /home/venv
@@ -57,20 +47,19 @@ ENV PATH="/home/venv/bin:$PATH"
 # Copy configuration to root's home
 COPY datacube.conf.template /root/.datacube.conf.template
 
-# Create user first
-RUN useradd -m -s /bin/bash appuser
+# Create user 'odc'
+RUN useradd -m -s /bin/bash odc
 
-# Copy template to appuser's home and set permissions
-COPY datacube.conf.template /home/appuser/.datacube.conf.template
-RUN chown appuser:appuser /home/appuser/.datacube.conf.template
+# Copy template to odc's home and set permissions
+COPY datacube.conf /home/odc/.datacube.conf
+RUN chown odc:odc /home/odc/.datacube.conf
 
 # Copy entrypoint
 COPY docker/odc/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-USER appuser
-WORKDIR /home/appuser/app
+USER odc
+WORKDIR /home/odc/app
 
-# Use entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["tail", "-f", "/dev/null"]

@@ -3,7 +3,7 @@ odc-geo
 odc-stac
 odc-cloud
 odc-apps-dc-tools==1.9.3
-datacube==1.9.6
+datacube==1.9.10
 
 # Additional dependencies for stac-to-dc and others
 boto3
