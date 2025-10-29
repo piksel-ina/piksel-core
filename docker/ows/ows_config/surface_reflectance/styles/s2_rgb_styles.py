@@ -36,7 +36,7 @@ INFRARED_GREEN = {
     "title": "False Color - SWIR, NIR, Green",
     "abstract": "False color image with SWIR1->Red, NIR->Green, and Green->Blue",
     "components": {
-        "red": {"swir16": 1.0},   # SWIR1 (B11)
+        "red": {"swir_1": 1.0},   # SWIR1 (B11)
         "green": {"nir": 1.0},    # NIR (B08)
         "blue": {"green": 1.0}    # Green (B03)
     },
@@ -49,7 +49,7 @@ AGRICULTURE = {
     "title": "Agriculture - SWIR, NIR, Blue",
     "abstract": "Agriculture composite (SWIR1->Red, NIR->Green, Blue->Blue)",
     "components": {
-        "red": {"swir16": 1.0},   # SWIR1 (B11)
+        "red": {"swir_1": 1.0},   # SWIR1 (B11)
         "green": {"nir": 1.0},    # NIR (B08)
         "blue": {"blue": 1.0}     # Blue (B02)
     },
@@ -62,8 +62,8 @@ ATMOSPHERIC_PENETRATION = {
     "title": "Atmospheric Penetration - SWIR2, SWIR1, Red",
     "abstract": "SWIR composite for atmospheric penetration and smoke detection",
     "components": {
-        "red": {"swir22": 1.0},   # SWIR2 (B12)
-        "green": {"swir16": 1.0}, # SWIR1 (B11)
+        "red": {"swir_2": 1.0},   # SWIR2 (B12)
+        "green": {"swir_1": 1.0}, # SWIR1 (B11)
         "blue": {"red": 1.0}      # Red (B04)
     },
     "scale_range": s2_range
@@ -123,9 +123,9 @@ SWIR1_BAND = {
     "title": "SWIR 1 - 1610nm",
     "abstract": "Short-wave infrared 1 band (B11), centered on 1610nm",
     "components": {
-        "red": {"swir16": 1.0},
-        "green": {"swir16": 1.0},
-        "blue": {"swir16": 1.0}
+        "red": {"swir_1": 1.0},
+        "green": {"swir_1": 1.0},
+        "blue": {"swir_1": 1.0}
     },
     "scale_range": s2_range
 }
@@ -135,9 +135,9 @@ SWIR2_BAND = {
     "title": "SWIR 2 - 2190nm",
     "abstract": "Short-wave infrared 2 band (B12), centered on 2190nm",
     "components": {
-        "red": {"swir22": 1.0},
-        "green": {"swir22": 1.0},
-        "blue": {"swir22": 1.0}
+        "red": {"swir_2": 1.0},
+        "green": {"swir_2": 1.0},
+        "blue": {"swir_2": 1.0}
     },
     "scale_range": s2_range
 }
@@ -148,9 +148,9 @@ RED_EDGE_1 = {
     "title": "Red Edge 1 - 705nm",
     "abstract": "Vegetation red edge band (B05), centered on 705nm",
     "components": {
-        "red": {"rededge1": 1.0},
-        "green": {"rededge1": 1.0},
-        "blue": {"rededge1": 1.0}
+        "red": {"red_edge_1": 1.0},
+        "green": {"red_edge_1": 1.0},
+        "blue": {"red_edge_1": 1.0}
     },
     "scale_range": s2_range
 }
@@ -160,9 +160,9 @@ RED_EDGE_2 = {
     "title": "Red Edge 2 - 740nm",
     "abstract": "Vegetation red edge band (B06), centered on 740nm",
     "components": {
-        "red": {"rededge2": 1.0},
-        "green": {"rededge2": 1.0},
-        "blue": {"rededge2": 1.0}
+        "red": {"red_edge_2": 1.0},
+        "green": {"red_edge_2": 1.0},
+        "blue": {"red_edge_2": 1.0}
     },
     "scale_range": s2_range
 }
@@ -172,9 +172,9 @@ RED_EDGE_3 = {
     "title": "Red Edge 3 - 783nm",
     "abstract": "Vegetation red edge band (B07), centered on 783nm",
     "components": {
-        "red": {"rededge3": 1.0},
-        "green": {"rededge3": 1.0},
-        "blue": {"rededge3": 1.0}
+        "red": {"red_edge_3": 1.0},
+        "green": {"red_edge_3": 1.0},
+        "blue": {"red_edge_3": 1.0}
     },
     "scale_range": s2_range
 }

@@ -157,9 +157,6 @@ services:
     ports:
       - "${OWS_PORT:-8000}:8000"
 
-    volumes:
-      - ./ows/ows_config:/env/config/ows_config:ro
-
     depends_on:
       postgres:
         condition: service_healthy

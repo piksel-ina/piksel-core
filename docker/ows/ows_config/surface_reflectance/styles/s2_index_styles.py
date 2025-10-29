@@ -31,7 +31,6 @@ NDVI = {
     "legend": {
         "begin": "0.0",
         "end": "1.0",
-        "decimal_places": 1,
         "ticks_every": 0.2,
     },
     "multi_date": [
@@ -47,11 +46,7 @@ NDVI = {
             "legend": {
                 "begin": "-1.0",
                 "end": "1.0",
-                "ticks": [
-                    "-1.0",
-                    "0.0",
-                    "1.0",
-                ],
+                "ticks": ["-1.0", "0.0", "1.0"],
             },
             "feature_info_label": "ndvi_delta",
         },
@@ -82,14 +77,7 @@ NDWI = {
     "legend": {
         "begin": "0.0",
         "end": "0.5",
-        "decimal_places": 1,
-        "ticks": ["0.0", "0.2", "0.4", "0.5"],
-        "tick_labels": {
-            "0.0": {"prefix": "<"},
-            "0.2": {"label": "0.2"},
-            "0.4": {"label": "0.4"},
-            "0.5": {"prefix": ">"},
-        },
+        "ticks_every": 0.1,
     },
     "multi_date": [
         {
@@ -104,11 +92,7 @@ NDWI = {
             "legend": {
                 "begin": "-1.0",
                 "end": "1.0",
-                "ticks": [
-                    "-1.0",
-                    "0.0",
-                    "1.0",
-                ],
+                "ticks": ["-1.0", "0.0", "1.0"],
             },
             "feature_info_label": "ndwi_delta",
         },
@@ -119,9 +103,8 @@ NDWI = {
 # MNDWI - Modified Normalized Difference Water Index
 MNDWI = {
     "name": "mndwi",
-    "title": "MNDWI - SWIR, NIR",
-    "abstract": "Modified Normalised Difference Water Index - a derived index that correlates "
-    "well with the existence of water (Xu 2006)",
+    "title": "MNDWI - Green, SWIR",
+    "abstract": "Modified Normalised Difference Water Index - a derived index that correlates well with the existence of water (Xu 2006)",
     "index_function": {
         "function": "datacube_ows.band_utils.norm_diff",
         "mapped_bands": True,
@@ -140,7 +123,6 @@ MNDWI = {
     "legend": {
         "begin": "0.0",
         "end": "1.0",
-        "decimal_places": 1,
         "ticks_every": 0.2,
     }
 }
@@ -168,14 +150,13 @@ NDBI = {
     "legend": {
         "begin": "0.0",
         "end": "1.0",
-        "decimal_places": 1,
         "ticks_every": 0.2,
     }
 }
 
-# NDMI - Normalized Difference Moisture Index (Sentinel-2 specific)
+# NDMI - Normalized Difference Moisture Index
 NDMI = {
-     "name": "ndmi",
+    "name": "ndmi",
     "title": "NDMI - NIR, SWIR",
     "abstract": "Normalised Difference Moisture Index - a derived index that correlates well with the existence of water in leaves",
     "index_function": {
@@ -196,14 +177,7 @@ NDMI = {
     "legend": {
         "begin": "0.0",
         "end": "0.5",
-        "decimal_places": 1,
-        "ticks": ["0.0", "0.2", "0.4", "0.5"],
-        "tick_labels": {
-            "0.0": {"prefix": "<"},
-            "0.2": {"label": "0.2"},
-            "0.4": {"label": "0.4"},
-            "0.5": {"prefix": ">"},
-        },
+        "ticks_every": 0.1,
     }
 }
 

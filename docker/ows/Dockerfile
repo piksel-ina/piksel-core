@@ -27,17 +27,14 @@ ENV VIRTUAL_ENV=/home/venv
 RUN uv venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Copy requirements.in and compile to requirements.txt
-COPY docker/ows/requirements.in /app/requirements.in
-
-# Compile dependencies with UV
-RUN uv pip compile requirements.in -o requirements.txt
+# Copy requirements.txt
+COPY docker/ows/requirements.txt /app/requirements.txt
 
 # Install Python packages with UV
 RUN uv pip install --no-cache -r requirements.txt
 
 # Runtime stage
-FROM ghcr.io/osgeo/gdal:${GDAL_VERSION}
+FROM ghcr.io/osgeo/gdal:${GDAL_VERSION} AS runtime
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
@@ -69,6 +66,14 @@ RUN useradd -m -s /bin/bash ows
 # Copy template to ows's home and set permissions
 COPY datacube.conf.template /home/ows/.datacube.conf.template
 RUN chown ows:ows /home/ows/.datacube.conf.template
+
+# Copy OWS configuration into the image
+COPY docker/ows/ows_config /env/config/ows_config
+
+ENV PYTHONPATH=/env/config
+ENV DATACUBE_OWS_CFG=ows_config.ows_cfg.ows_cfg
+
+RUN chown -R ows:ows /env/config
 
 # Copy entrypoint
 COPY docker/ows/entrypoint.sh /entrypoint.sh
