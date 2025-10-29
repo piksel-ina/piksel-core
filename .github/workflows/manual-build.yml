@@ -11,6 +11,7 @@ on:
         options:
           - odc
           - jupyter
+          - ows
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
@@ -42,6 +43,11 @@ jobs:
               echo "dockerfile=./docker/jupyter/Dockerfile" >> $GITHUB_OUTPUT
               echo "repository=piksel-core" >> $GITHUB_OUTPUT
               echo "image_name=jupyter" >> $GITHUB_OUTPUT
+              ;;
+            "ows")
+              echo "dockerfile=./docker/ows/Dockerfile" >> $GITHUB_OUTPUT
+              echo "repository=piksel-core" >> $GITHUB_OUTPUT
+              echo "image_name=ows" >> $GITHUB_OUTPUT
               ;;
           esac
 
