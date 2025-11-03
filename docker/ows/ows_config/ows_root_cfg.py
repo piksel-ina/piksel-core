@@ -17,9 +17,9 @@ service_keywords = [
 
 # Contact information
 contact_info = {
-    "person": "Muhammad Taufik",
+    "person": "DE Indonesia Team",
     "organisation": "Digital Earth Indonesia",
-    "position": "Main Developer",
+    "position": "",
     "address": {
         "type": "postal",
         "address": "Badan Informasi Geospasial",
@@ -28,7 +28,7 @@ contact_info = {
         "postcode": "16920",
         "country": "Indonesia",
     },
-    "email": "taufik.shf@gmail.com",
+    "email": "piksel@big.go.id",
     "telephone": "",  
     "fax": ""         
 }
@@ -55,6 +55,14 @@ published_CRSs = {
 allowed_urls = [ 
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+
+    # Uncached OWS endpoint
+    "https://ows-uncached.staging.pik-sel.id",
+    "https://ows-uncached.pik-sel.id",
+    
+    # PUBLIC ENDPOINT
+    "https://ows.staging.pik-sel.id",
+    "https://ows.pik-sel.id",
 ]
 
 # Enabled services

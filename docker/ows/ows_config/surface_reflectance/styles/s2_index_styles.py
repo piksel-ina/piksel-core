@@ -29,9 +29,9 @@ NDVI = {
         {"value": 1.0, "color": "#114D04"},
     ],
     "legend": {
-        "begin": "0.0",
-        "end": "1.0",
-        "ticks_every": 0.2,
+        "begin": 0.0,
+        "end": 1.0,
+        "ticks": [0.0, 0.5, 1.0],
     },
     "multi_date": [
         {
@@ -44,9 +44,9 @@ NDVI = {
             "mpl_ramp": "RdYlBu",
             "range": [-1.0, 1.0],
             "legend": {
-                "begin": "-1.0",
-                "end": "1.0",
-                "ticks": ["-1.0", "0.0", "1.0"],
+                "begin": -1.0,
+                "end": 1.0,
+                "ticks": [-1.0, 0.0, 1.0],
             },
             "feature_info_label": "ndvi_delta",
         },
@@ -75,9 +75,9 @@ NDWI = {
         {"value": 0.5, "color": "#08306b"},
     ],
     "legend": {
-        "begin": "0.0",
-        "end": "0.5",
-        "ticks_every": 0.1,
+        "begin": 0.0,
+        "end": 0.5,
+        "ticks": [0.0, 0.25, 0.5]
     },
     "multi_date": [
         {
@@ -90,9 +90,9 @@ NDWI = {
             "mpl_ramp": "RdYlBu",
             "range": [-1.0, 1.0],
             "legend": {
-                "begin": "-1.0",
-                "end": "1.0",
-                "ticks": ["-1.0", "0.0", "1.0"],
+                "begin": -1.0,
+                "end": 1.0,
+                "ticks": [-1.0, 0.0, 1.0],
             },
             "feature_info_label": "ndwi_delta",
         },
@@ -121,9 +121,9 @@ MNDWI = {
         {"value": 1.0, "color": "#08306b"},
     ],
     "legend": {
-        "begin": "0.0",
-        "end": "1.0",
-        "ticks_every": 0.2,
+        "begin": 0.0,
+        "end": 1.0,
+        "ticks": [0.0, 0.5, 1.0]
     }
 }
 
@@ -148,9 +148,9 @@ NDBI = {
         {"value": 1.0, "color": "#7a0177"},
     ],
     "legend": {
-        "begin": "0.0",
-        "end": "1.0",
-        "ticks_every": 0.2,
+        "begin": 0.0,
+        "end": 1.0,
+        "ticks": [0.0, 0.5, 1.0],
     }
 }
 
@@ -177,7 +177,7 @@ NDMI = {
     "legend": {
         "begin": "0.0",
         "end": "0.5",
-        "ticks_every": 0.1,
+        "ticks": [0.0, 0.25, 0.5]
     }
 }
 
