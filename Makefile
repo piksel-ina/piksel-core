@@ -114,6 +114,10 @@ build-jupyter:
 	@echo "$(BLUE)Building jupyter docker image...$(NC)"
 	$(DOCKER_COMPOSE) build jupyter
 
+build-jupyter-dev:
+	@echo "$(BLUE)Building jupyter-dev docker image...$(NC)"
+	$(DOCKER_COMPOSE) build jupyter-dev
+
 build-ows:
 	@echo "$(BLUE)Building ows docker image...$(NC)"
 	$(DOCKER_COMPOSE) build ows
@@ -173,6 +177,12 @@ up-jupyter: setup-config
 	@echo "$(BLUE)Starting Piksel Base services...$(NC)"
 	@export $$(grep -v '^#' .env | xargs) && \
 	COMPOSE_PROFILES=jupyter $(DOCKER_COMPOSE) up -d && \
+	echo "$(GREEN)Services started. Jupyter is available at http://localhost:$$JUPYTER_PORT$(NC)"
+
+up-jupyter-dev: setup-config
+	@echo "$(BLUE)Starting With Jupyter Development Container...$(NC)"
+	@export $$(grep -v '^#' .env | xargs) && \
+	COMPOSE_PROFILES=jupyter-dev $(DOCKER_COMPOSE) up -d && \
 	echo "$(GREEN)Services started. Jupyter is available at http://localhost:$$JUPYTER_PORT$(NC)"
 
 up-explorer: setup-config
