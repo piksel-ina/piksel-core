@@ -19,3 +19,4 @@ datacube.conf
 *.tif
 
 docker/jupyter/full
+.Trash-1000/
