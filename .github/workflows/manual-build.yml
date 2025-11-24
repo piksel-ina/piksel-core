@@ -1,12 +1,12 @@
 name: Manual Docker Build
+run-name: "Manual: ${{ inputs.build_target }} (User: ${{ github.actor }})"
 
 on:
   workflow_dispatch:
     inputs:
       build_target:
-        description: "Which image to build"
+        description: "Select Component"
         required: true
-        default: "odc"
         type: choice
         options:
           - odc
@@ -14,104 +14,38 @@ on:
           - dev-jupyter
           - ows
 
-env:
-  AWS_REGION: ${{ vars.AWS_REGION }}
-  AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
-  ECR_REGISTRY: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
-
 jobs:
-  build-and-push:
+  prepare-config:
     runs-on: ubuntu-latest
-
-    permissions:
-      id-token: write
-      contents: read
-
+    outputs:
+      component: ${{ steps.config.outputs.component }}
+      dockerfile: ${{ steps.config.outputs.dockerfile }}
+      date_tag: ${{ steps.config.outputs.date_tag }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set build configuration
+      - name: Configure Build
         id: config
         run: |
-          case "${{ github.event.inputs.build_target }}" in
-            "odc")
-              echo "dockerfile=./docker/odc/Dockerfile" >> $GITHUB_OUTPUT
-              echo "repository=piksel-core" >> $GITHUB_OUTPUT
-              echo "image_name=odc" >> $GITHUB_OUTPUT
-              ;;
-            "jupyter")
-              echo "dockerfile=./docker/jupyter/Dockerfile" >> $GITHUB_OUTPUT
-              echo "repository=piksel-core" >> $GITHUB_OUTPUT
-              echo "image_name=jupyter" >> $GITHUB_OUTPUT
-              ;;
-            "dev-jupyter")
-              echo "dockerfile=./docker/jupyter-dev/Dockerfile" >> $GITHUB_OUTPUT
-              echo "repository=piksel-core" >> $GITHUB_OUTPUT
-              echo "image_name=dev-jupyter" >> $GITHUB_OUTPUT
-              ;;
-            "ows")
-              echo "dockerfile=./docker/ows/Dockerfile" >> $GITHUB_OUTPUT
-              echo "repository=piksel-core" >> $GITHUB_OUTPUT
-              echo "image_name=ows" >> $GITHUB_OUTPUT
-              ;;
+          COMPONENT="${{ inputs.build_target }}"
+
+          case $COMPONENT in
+            "odc") DOCKERFILE="./docker/odc/Dockerfile" ;;
+            "ows") DOCKERFILE="./docker/ows/Dockerfile" ;;
+            "jupyter") DOCKERFILE="./docker/jupyter/Dockerfile" ;;
+            "dev-jupyter") DOCKERFILE="./docker/jupyter-dev/Dockerfile" ;;
           esac
 
-      - name: Generate metadata
-        id: meta
-        run: |
-          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          SHORT_SHA=${GITHUB_SHA:0:7}
-          BRANCH=${GITHUB_REF#refs/heads/}
-          BRANCH=$(echo $BRANCH | sed 's/[^a-zA-Z0-9._-]/-/g')
+          DATE_TAG=$(date +'%Y%m%d')
 
-          echo "timestamp=v${TIMESTAMP}" >> $GITHUB_OUTPUT
-          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
-          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "component=$COMPONENT" >> $GITHUB_OUTPUT
+          echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
+          echo "date_tag=$DATE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          role-session-name: github-actions-manual-${{ steps.config.outputs.image_name }}-${{ github.run_id }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Generate tags
-        id: tags
-        run: |
-          REPO="${{ env.ECR_REGISTRY }}/${{ steps.config.outputs.repository }}"
-          IMAGE_NAME="${{ steps.config.outputs.image_name }}"
-
-          TAGS="$REPO:$IMAGE_NAME-${{ steps.meta.outputs.short_sha }}"
-          TAGS="$TAGS,$REPO:$IMAGE_NAME-${{ steps.meta.outputs.timestamp }}"
-
-          echo "tags=$TAGS" >> $GITHUB_OUTPUT
-          echo "Generated tags: $TAGS"
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ${{ steps.config.outputs.dockerfile }}
-          push: true
-          tags: ${{ steps.tags.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          platforms: linux/amd64
-          labels: |
-            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.created=${{ steps.meta.outputs.timestamp }}
-
-      - name: Output summary
-        run: |
-          echo "### Successfully built ${{ steps.config.outputs.image_name }} image" >> $GITHUB_STEP_SUMMARY
-          echo "**Repository:** ${{ env.ECR_REGISTRY }}/${{ steps.config.outputs.repository }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Tags:**" >> $GITHUB_STEP_SUMMARY
-          echo "${{ steps.tags.outputs.tags }}" | tr ',' '\n' | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY
+  call-build:
+    needs: prepare-config
+    uses: ./.github/workflows/docker-build.yml
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+    with:
+      component: ${{ needs.prepare-config.outputs.component }}
+      dockerfile: ${{ needs.prepare-config.outputs.dockerfile }}
+      image_tag: ${{ needs.prepare-config.outputs.date_tag }}
