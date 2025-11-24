@@ -22,7 +22,7 @@ on:
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   ECR_REGISTRY: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
-  FULL_IMAGE_TAG: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/piksel-core:${{ inputs.component }}-v${{ inputs.image_tag }}
+  FULL_IMAGE_TAG: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/piksel-core:${{ inputs.component }}-${{ inputs.image_tag }}
 
 jobs:
   build-push:
