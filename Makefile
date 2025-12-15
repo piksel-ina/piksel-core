@@ -210,11 +210,11 @@ stop:
 
 down:
 	@echo "$(BLUE)Stopping and removing Piksel containers (preserving volumes)...$(NC)"
-	COMPOSE_PROFILES=jupyter,explorer,ows $(DOCKER_COMPOSE) down
+	COMPOSE_PROFILES=jupyter,jupyter-dev,explorer,ows $(DOCKER_COMPOSE) down
 
 rmvol:
 	@echo "$(BLUE)Stopping and removing Piksel containers and volumes...$(NC)"
-	$(DOCKER_COMPOSE) down -v
+	COMPOSE_PROFILES=jupyter,jupyter-dev,explorer,ows $(DOCKER_COMPOSE) down -v
 
 restart:
 	@echo "$(BLUE)Restarting Piksel services...$(NC)"
@@ -340,8 +340,9 @@ LANDSATLOOK ?= https://landsatlook.usgs.gov/stac-server/
 
 # Default parameters for indexing
 Bbox ?= 105,-8,106,-5
-Date ?= 2025-01-01/2025-07-31
+Date ?= 2022-01-01/2022-07-31
 CollectionS2 ?= sentinel-2-l2a
+
 
 # Default parameters for LSX indexing (adjust these as appropriate)
 DateLsOld ?= 2000-01-01/2000-07-31
@@ -372,6 +373,16 @@ index-sentinel2:
 	            --collections='$(CollectionS2)' \
 	            --datetime='$(Date)' \
 	            --rename-product='s2_l2a'
+
+# Sentinel 2 C0
+index-s2-c0:
+	@echo "$(BLUE)Indexing Sentinel-2 L2A Collection 0 data...$(NC)"
+	$(DOCKER_COMPOSE) exec odc \
+	  stac-to-dc --catalog-href='https://earth-search.aws.element84.com/v1/' \
+	            --bbox='$(Bbox)' \
+	            --collections='$(CollectionS2)' \
+	            --datetime='$(Date)' \
+	            --rename-product='sentinel_2_l2a_c0'
 
 # Landsat Surface Temperature
 index-ls9-st:
