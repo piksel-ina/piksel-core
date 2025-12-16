@@ -1,22 +1,37 @@
 name: eo3
 description: EO for DE Indonesia
 dataset:
-  id: ["id"] # has to be this value, can't be changed
-  sources: ["lineage", "source_datasets"] # has to be this value, can't be changed
-  grid_spatial: ["grid_spatial", "projection"]
-  measurements: ["measurements"]
-  creation_dt: ["properties", "odc:processing_datetime"]
-  label: ["label"]
-  format: ["properties", "odc:file_format"] # note add to ARD metadata, only L1 currently
+  id:
+    - id
+  sources:
+    - lineage
+    - source_datasets
+  grid_spatial:
+    - grid_spatial
+    - projection
+  measurements:
+    - measurements
+  creation_dt:
+    - properties
+    - odc:processing_datetime
+  label:
+    - label
+  format:
+    - properties
+    - odc:file_format
 
   search_fields:
     platform:
       description: Platform code
-      offset: ["properties", "eo:platform"]
+      offset:
+        - properties
+        - eo:platform
 
     product_family:
       description: Product family code
-      offset: ["properties", "odc:product_family"]
+      offset:
+        - properties
+        - odc:product_family
 
     region_code:
       description: >
@@ -25,39 +40,54 @@ dataset:
         For Sentinel it is MGRS code.
         In general it is a unique string identifier that datasets covering roughly
         the same spatial region share.
-
-      offset: ["properties", "odc:region_code"]
+      offset:
+        - properties
+        - odc:region_code
 
     cloud_cover:
       description: Cloud cover percentage [0, 100]
       type: double
-      offset: ["properties", "eo:cloud_cover"]
+      offset:
+        - properties
+        - eo:cloud_cover
 
     time:
       description: Acquisition time range
       type: datetime-range
       min_offset:
-        - ["properties", "dtr:start_datetime"]
-        - ["properties", "datetime"]
+        - - properties
+          - dtr:start_datetime
+        - - properties
+          - datetime
       max_offset:
-        - ["properties", "dtr:end_datetime"]
-        - ["properties", "datetime"]
+        - - properties
+          - dtr:end_datetime
+        - - properties
+          - datetime
 
     lon:
       description: Longitude range
       type: double-range
       min_offset:
-        - ["extent", "lon", "begin"]
+        - - extent
+          - lon
+          - begin
       max_offset:
-        - ["extent", "lon", "end"]
+        - - extent
+          - lon
+          - end
 
     lat:
       description: Latitude range
       type: double-range
       min_offset:
-        - ["extent", "lat", "begin"]
+        - - extent
+          - lat
+          - begin
       max_offset:
-        - ["extent", "lat", "end"]
+        - - extent
+          - lat
+          - end
 
     # Frequently used fields
     eo_gsd:
@@ -88,127 +118,212 @@ dataset:
     # Generic
     crs_raw:
       description: Coordinate reference system field
-      offset: ["properties", "crs"]
+      offset:
+        - properties
+        - crs
       indexed: false
 
     # Sentinel-1
     sat_orbit_state:
       description: The satellite orbit state, either ascending or descending
-      offset: ["properties", "sat:orbit_state"]
+      offset:
+        - properties
+        - sat:orbit_state
       indexed: false
 
     sat_relative_orbit:
       description: The satellite relative orbit
-      offset: ["properties", "sat:relative_orbit"]
+      offset:
+        - properties
+        - sat:relative_orbit
       indexed: false
       type: integer
 
     # Sentinel-2
     data_coverage:
       description: How much data is in the scene
-      offset: ["properties", "sentinel:data_coverage"]
+      offset:
+        - properties
+        - sentinel:data_coverage
       indexed: false
       type: double
 
     # Sentinel-2 Quality
     s2_cloud_shadow_percentage:
       description: Sentinel-2 cloud shadow percentage
-      offset: ["properties", "s2:cloud_shadow_percentage"]
+      offset:
+        - properties
+        - s2:cloud_shadow_percentage
       indexed: true
       type: double
 
     s2_high_proba_clouds_percentage:
       description: Sentinel-2 high probability clouds percentage
-      offset: ["properties", "s2:high_proba_clouds_percentage"]
+      offset:
+        - properties
+        - s2:high_proba_clouds_percentage
       indexed: true
       type: double
 
     s2_medium_proba_clouds_percentage:
       description: Sentinel-2 medium probability clouds percentage
-      offset: ["properties", "s2:medium_proba_clouds_percentage"]
+      offset:
+        - properties
+        - s2:medium_proba_clouds_percentage
       indexed: true
       type: double
 
     s2_thin_cirrus_percentage:
       description: Sentinel-2 thin cirrus percentage
-      offset: ["properties", "s2:thin_cirrus_percentage"]
+      offset:
+        - properties
+        - s2:thin_cirrus_percentage
       indexed: true
       type: double
 
     s2_nodata_pixel_percentage:
       description: Sentinel-2 nodata pixel percentage
-      offset: ["properties", "s2:nodata_pixel_percentage"]
+      offset:
+        - properties
+        - s2:nodata_pixel_percentage
       indexed: true
       type: double
 
     s2_saturated_defective_pixel_percentage:
       description: Sentinel-2 saturated or defective pixel percentage
-      offset: ["properties", "s2:saturated_defective_pixel_percentage"]
+      offset:
+        - properties
+        - s2:saturated_defective_pixel_percentage
       indexed: true
       type: double
 
     s2_vegetation_percentage:
       description: Sentinel-2 vegetation percentage from SCL
-      offset: ["properties", "s2:vegetation_percentage"]
+      offset:
+        - properties
+        - s2:vegetation_percentage
       indexed: true
       type: double
 
     s2_water_percentage:
       description: Sentinel-2 water percentage from SCL
-      offset: ["properties", "s2:water_percentage"]
+      offset:
+        - properties
+        - s2:water_percentage
       indexed: true
       type: double
 
     s2_snow_ice_percentage:
       description: Sentinel-2 snow/ice percentage from SCL
-      offset: ["properties", "s2:snow_ice_percentage"]
+      offset:
+        - properties
+        - s2:snow_ice_percentage
       indexed: true
       type: double
 
     s2_not_vegetated_percentage:
       description: Sentinel-2 not vegetated percentage from SCL
-      offset: ["properties", "s2:not_vegetated_percentage"]
+      offset:
+        - properties
+        - s2:not_vegetated_percentage
       indexed: true
       type: double
 
     s2_unclassified_percentage:
       description: Sentinel-2 unclassified percentage from SCL
-      offset: ["properties", "s2:unclassified_percentage"]
+      offset:
+        - properties
+        - s2:unclassified_percentage
       indexed: true
       type: double
 
-    # Landsat
-    collection_category:
-      description: Landsat collection category, such as T1 or T2
-      offset: ["properties", "landsat:collection_category"]
-      indexed: false
+    # Landsat Common (SR and ST)
+    wrs_path:
+      description: Landsat WRS path
+      offset:
+        - properties
+        - landsat:wrs_path
+      indexed: true
+      type: integer
 
-    rmse:
-      description: Landsat root mean square error
-      offset: ["properties", "landsat:rmse"]
-      indexed: false
+    wrs_row:
+      description: Landsat WRS row
+      offset:
+        - properties
+        - landsat:wrs_row
+      indexed: true
+      type: integer
+
+    cloud_cover_land:
+      description: Landsat cloud cover percentage over land only
+      offset:
+        - properties
+        - landsat:cloud_cover_land
+      indexed: true
       type: double
 
-    rmse_x:
-      description: Landsat root mean square error in X
-      offset: ["properties", "landsat:rmse_x"]
-      indexed: false
+    # Geometric Accuracy (CARD4L)
+    geometric_rmse:
+      description: Geometric root mean square error
+      offset:
+        - properties
+        - accuracy:geometric_rmse
+      indexed: true
       type: double
 
-    rmse_y:
-      description: Landsat root mean square error in Y
-      offset: ["properties", "landsat:rmse_y"]
-      indexed: false
-      type: double
+    # Landsat Specific Fields (SR and ST)
+    landsat_collection_category:
+      description: Landsat collection category (T1, T2, RT)
+      offset:
+        - properties
+        - landsat:collection_category
+      indexed: true
+      type: string
 
-    # Derivatives
-    dataset_version:
-      description: Derived product version number
-      offset: ["properties", "odc:dataset_version"]
-      indexed: false
+    landsat_collection_number:
+      description: Landsat collection number
+      offset:
+        - properties
+        - landsat:collection_number
+      indexed: true
+      type: string
+
+    landsat_correction:
+      description: Landsat correction level (L2SP, L2SR)
+      offset:
+        - properties
+        - landsat:correction
+      indexed: true
+      type: string
+
+    landsat_scene_id:
+      description: Landsat scene ID
+      offset:
+        - properties
+        - landsat:scene_id
+      indexed: true
+      type: string
+
+    card4l_specification:
+      description: CARD4L specification type (SR, ST)
+      offset:
+        - properties
+        - card4l:specification
+      indexed: true
+      type: string
+
+    card4l_specification_version:
+      description: CARD4L specification version
+      offset:
+        - properties
+        - card4l:specification_version
+      indexed: true
+      type: string
 
     # Crop mask or other regional products
     # region:
     #   description: African regional area
-    #   offset: ['properties', 'region']
+    #   offset:
+    #     - properties
+    #     - region
     #   indexed: false
