@@ -2,8 +2,8 @@
 odc-geo
 odc-stac
 odc-cloud
-odc-apps-dc-tools==1.9.3
-datacube==1.9.10
+odc-apps-dc-tools>=1.9.3
+datacube==1.9.11
 
 # Additional dependencies for stac-to-dc and others
 boto3
@@ -35,5 +35,4 @@ requests
 fsspec[http]
 
 # GDAL and Related
-gdal==3.11.0
 rasterio

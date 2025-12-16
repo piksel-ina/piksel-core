@@ -110,7 +110,7 @@ dask==2025.10.0
     #   distributed
     #   odc-loader
     #   odc-stac
-datacube==1.9.10
+datacube==1.9.11
     # via
     #   -r docker/odc/requirements.in
     #   eodatasets3
@@ -140,8 +140,6 @@ fsspec==2025.9.0
     #   -r docker/odc/requirements.in
     #   dask
     #   odc-apps-dc-tools
-gdal==3.11.0
-    # via -r docker/odc/requirements.in
 geoalchemy2==0.18.0
     # via
     #   -r docker/odc/requirements.in
@@ -228,7 +226,7 @@ odc-loader==0.5.1
     # via
     #   datacube
     #   odc-stac
-odc-stac==0.4.0
+odc-stac==0.4.1
     # via
     #   -r docker/odc/requirements.in
     #   datacube
