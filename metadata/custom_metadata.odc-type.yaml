@@ -110,6 +110,73 @@ dataset:
       indexed: false
       type: double
 
+    # Sentinel-2 Quality
+    s2_cloud_shadow_percentage:
+      description: Sentinel-2 cloud shadow percentage
+      offset: ["properties", "s2:cloud_shadow_percentage"]
+      indexed: true
+      type: double
+
+    s2_high_proba_clouds_percentage:
+      description: Sentinel-2 high probability clouds percentage
+      offset: ["properties", "s2:high_proba_clouds_percentage"]
+      indexed: true
+      type: double
+
+    s2_medium_proba_clouds_percentage:
+      description: Sentinel-2 medium probability clouds percentage
+      offset: ["properties", "s2:medium_proba_clouds_percentage"]
+      indexed: true
+      type: double
+
+    s2_thin_cirrus_percentage:
+      description: Sentinel-2 thin cirrus percentage
+      offset: ["properties", "s2:thin_cirrus_percentage"]
+      indexed: true
+      type: double
+
+    s2_nodata_pixel_percentage:
+      description: Sentinel-2 nodata pixel percentage
+      offset: ["properties", "s2:nodata_pixel_percentage"]
+      indexed: true
+      type: double
+
+    s2_saturated_defective_pixel_percentage:
+      description: Sentinel-2 saturated or defective pixel percentage
+      offset: ["properties", "s2:saturated_defective_pixel_percentage"]
+      indexed: true
+      type: double
+
+    s2_vegetation_percentage:
+      description: Sentinel-2 vegetation percentage from SCL
+      offset: ["properties", "s2:vegetation_percentage"]
+      indexed: true
+      type: double
+
+    s2_water_percentage:
+      description: Sentinel-2 water percentage from SCL
+      offset: ["properties", "s2:water_percentage"]
+      indexed: true
+      type: double
+
+    s2_snow_ice_percentage:
+      description: Sentinel-2 snow/ice percentage from SCL
+      offset: ["properties", "s2:snow_ice_percentage"]
+      indexed: true
+      type: double
+
+    s2_not_vegetated_percentage:
+      description: Sentinel-2 not vegetated percentage from SCL
+      offset: ["properties", "s2:not_vegetated_percentage"]
+      indexed: true
+      type: double
+
+    s2_unclassified_percentage:
+      description: Sentinel-2 unclassified percentage from SCL
+      offset: ["properties", "s2:unclassified_percentage"]
+      indexed: true
+      type: double
+
     # Landsat
     collection_category:
       description: Landsat collection category, such as T1 or T2
