@@ -326,13 +326,11 @@ add-product:
 
 rm-product:
 	@if [ -z "$(P)" ]; then \
-		echo "$(RED)Error: Missing product name. Usage: make rm-product P=<product_name>$(NC)"; \
+		echo "${RED}Error: Missing product name. Usage: make rm-product P=<product_name>${NC}"; \
 		exit 1; \
 	fi
-	@echo "$(BLUE)Removing product '$(P)' using SQL script...$(NC)"
-	@cat scripts/delete_odc_product.sql | $(DOCKER_COMPOSE) exec -T postgres \
-		psql -U piksel_user -d piksel_db -v product_name="$(P)"
-
+	@echo "${YELLOW}Deleting product: $(P)${NC}"
+	$(DOCKER_COMPOSE) exec -T odc bash -c "echo 'y' | datacube product delete --force $(P)"
 
 # Indexing commands
 # STAC Catalog URLs
