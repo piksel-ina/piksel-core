@@ -372,16 +372,6 @@ index-sentinel2:
 	            --datetime='$(Date)' \
 	            --rename-product='s2_l2a'
 
-# Sentinel 2 C0
-index-s2-c0:
-	@echo "$(BLUE)Indexing Sentinel-2 L2A Collection 0 data...$(NC)"
-	$(DOCKER_COMPOSE) exec odc \
-	  stac-to-dc --catalog-href='https://earth-search.aws.element84.com/v1/' \
-	            --bbox='$(Bbox)' \
-	            --collections='$(CollectionS2)' \
-	            --datetime='$(Date)' \
-	            --rename-product='sentinel_2_l2a_c0'
-
 # Landsat Surface Temperature
 index-ls9-st:
 	@echo "$(BLUE)Indexing LS9 C2L2 ST data...$(NC)"
@@ -394,7 +384,6 @@ index-ls9-st:
 				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
 	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_9\"]}}" \
-
 
 index-ls8-st:
 	@echo "$(BLUE)Indexing LS8 C2L2 ST data...$(NC)"
