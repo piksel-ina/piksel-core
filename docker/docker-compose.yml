@@ -17,6 +17,7 @@ services:
       timeout: 5s
       retries: 5
 
+
   odc:
     build:
       context: ../
@@ -42,6 +43,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
 
   jupyter:
     profiles: [jupyter]
@@ -95,6 +97,8 @@ services:
       - --no-browser
       - --NotebookApp.token=
       - --NotebookApp.password=
+
+
   jupyter-dev:
     profiles: [jupyter-dev]
     build:
@@ -124,7 +128,6 @@ services:
       # Grant sudo access for package installation
       - GRANT_SUDO=yes
       - SUDO_USER=jovyan
-
     ports:
       - "${JUPYTER_PORT:-8888}:8888"
     volumes:
@@ -149,7 +152,7 @@ services:
       - --NotebookApp.token=
       - --NotebookApp.password=
 
-  # Run 'make cubedash-init' to initialize explorer
+
   explorer:
     profiles: [explorer]
     image: opendatacube/explorer:3.0.1
@@ -190,7 +193,7 @@ services:
       retries: 3
       start_period: 60s
 
-  # OpenDataCube OWS (Open Web Services)
+
   ows:
     profiles: [ows]
     build:
@@ -225,6 +228,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+
 
 networks:
   default:
