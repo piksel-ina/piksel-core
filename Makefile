@@ -1,7 +1,9 @@
 # Piksel Platform Makefile
 # A set of commands to manage ODC development and deployment
 
+# =========================
 # Settings
+# =========================
 COMPOSE_FILE := docker/docker-compose.yml
 COMPOSE_FILE_TEST := docker/docker-compose-test.yml
 PROJECT_NAME := piksel
@@ -18,154 +20,67 @@ RED=\033[31m
 YELLOW=\033[33m
 NC=\033[0m # No Color
 
-# Default target
+# =========================
+# Auto-help
+# =========================
 .PHONY: help
-help:
+help: ## Show this help
 	@echo ""
-	@echo "${BLUE}Piksel Platform Management Commands ${NC}"
-	@echo "${GREEN}Basic Commands:${NC}"
-	@echo "  make init          - Initialize environment files and configuration"
-	@echo "  make ows-init      - Initialize OWS (after database is set up)"
-	@echo "  make build-all		- Build all Docker images"
-	@echo "  make build-odc     - Build ODC Docker images"
-	@echo "  make build-jupyter - Build Jupyter Docker images"
-	@echo "  make up            - Start ODC only"
-	@echo "  make up-all        - Start ODC, Jupyter and Explorer services"
-	@echo "  make up-jupyter    - Start ODC with Jupyter services"
-	@echo "  make up-explorer   - Start ODC with Datacube Explorer services"
-	@echo "  make up-ows     	- Start ODC with Open Web Services (OWS)"
-	@echo "  make stop          - Stop all project containers (without removing them)"
-	@echo "  make down          - Stop and remove all project containers (but preserve volumes)"
-	@echo "  make rmvol         - Stop and remove project containers and volumes"
-	@echo "  make restart       - Restart all services"
-	@echo "  make ps            - Show service status"
-	@echo "  make logs          - View logs from all services"
-	@echo "  make clean         - Prune unused Docker resources"
+	@echo "$(BLUE)Make Commands$(NC)"
 	@echo ""
-	@echo "${GREEN}Configuration Commands:${NC}"
-	@echo "  make setup-config  - Generate datacube.conf from template"
-	@echo "  make check-env     - Display environment variables"
-	@echo "  make check-config  - Check datacube configuration"
-	@echo ""
-	@echo "${GREEN}Database Commands:${NC}"
-	@echo "  make init-db          - Initialize the ODC database"
-	@echo "  make reset-db         - Reset the ODC database (destroys all data)"
-	@echo "  make spindex-create   - Add spatial index"
-	@echo "  make spindex-update   - Populates or refreshes the spatial index"
-	@echo "  make backup-db        - Backup the database"
-	@echo "  make psql             - Open an interactive PostgreSQL shell"
-	@echo "  make update-metadata  - Add or update metadata definition"
-	@echo ""
-	@echo "${GREEN}Product Commands:${NC}"
-	@echo "  make list-products                   - List all registered products"
-	@echo "  make all-products                    - Add all product definitions"
-	@echo "  make add-product P=<product.yaml>    - Add a specific product definition"
-	@echo "  make rm-product P=<product.yaml>     - Remove a specific product definition"
-	@echo ""
-	@echo "${GREEN}Indexing Commands:${NC}"
-	@echo "  make index-sentinel2      - Index Sentinel-2 L2A data with the following defaults:"
-	@echo "                               Bbox  (default: $(Bbox))"
-	@echo "                               Date  (default: $(Date))"
-	@echo ""
-	@echo "  To override these defaults, pass new values as variables."
-	@echo "  For example: ${GREEN}make index-sentinel2 Bbox='115,-10,117,-8' Date='2021-01-01/2021-01-31'${NC}"
-	@echo ""
-	@echo "  make index-ls9-st         - Index Landsat-9 Surface Temperature data"
-	@echo "  make index-ls8-st         - Index Landsat-8 Surface Temperature data"
-	@echo "  make index-ls7-st         - Index Landsat-7 Surface Temperature data"
-	@echo "  make index-ls5-st         - Index Landsat-5 Surface Temperature data"
-	@echo "  make index-ls9-sr         - Index Landsat-9 Surface Reflectance data"
-	@echo "  make index-ls8-sr         - Index Landsat-8 Surface Reflectance data"
-	@echo "  make index-ls7-sr         - Index Landsat-7 Surface Reflectance data"
-	@echo "  make index-ls5-sr         - Index Landsat-5 Surface Reflectance data"
-	@echo "  make index-s1-rtc         - Index Sentinel-1 RTC data"
-	@echo ""
-	@echo "${GREEN}Testing Commands:${NC}"
-	@echo "  make test                   - Run all tests with minimal output"
-	@echo "  make test-verbose           - Run all tests with detailed output"
-	@echo "  make test-unit              - Run only unit tests"
-	@echo "  make test-integration       - Run only integration tests"
-	@echo "  make test-up                - Start test environment"
-	@echo "  make test-down              - Stop and remove test environment"
-	@echo "  make test-logs              - View test environment logs"
-	@echo "  make test-deps              - Install test dependencies"
-	@echo ""
-	@echo "${GREEN}Dependency Management Commands:${NC}"
-	@echo "  make compile-deps          - Compile all dependencies (ODC, Jupyter, Test)"
-	@echo "  make compile-odc-deps      - Compile only ODC dependencies"
-	@echo "  make compile-jupyter-deps  - Compile only Jupyter dependencies"
-	@echo "  make compile-test-deps     - Compile only test dependencies"
-	@echo "  make update-deps           - Update all dependencies to latest versions"
-	@echo ""
-	@echo "${GREEN}Utility Commands:${NC}"
-	@echo "  make bash-odc               - Open a shell in the ODC container"
-	@echo "  make bash-jupyter           - Open a shell in the Jupyter container"
-	@echo "  make jupyter-token          - Get the Jupyter token"
-	@echo ""
+	@awk 'BEGIN {FS = ":.*##";} \
+	     /^[a-zA-Z0-9_.-]+:.*##/ { printf "  $(GREEN)%-22s$(NC) %s\n", $$1, $$2 }' $(MAKEFILE_LIST) 
 
-
-# Docker commands
-.PHONY: build-odc build-jupyter build-ows build-all up up-jupyter up-explorer stop down rmvol restart ps logs clean setup-config init check-env check-config ows-init up-ows
-build-odc:
+# =========================
+# Docker image build commands
+# =========================
+.PHONY: build build-jupyter build-jupyter-dev build-ows build-all
+build: ## Build base services (Postgis + ODC)
 	@echo "$(BLUE)Building odc docker image...$(NC)"
 	$(DOCKER_COMPOSE) build odc
 
-build-jupyter:
+build-jupyter: ## Build Jupyter Docker image
 	@echo "$(BLUE)Building jupyter docker image...$(NC)"
 	$(DOCKER_COMPOSE) build jupyter
 
-build-jupyter-dev:
+build-jupyter-dev: ## Build Jupyter dev Docker image
 	@echo "$(BLUE)Building jupyter-dev docker image...$(NC)"
 	$(DOCKER_COMPOSE) build jupyter-dev
 
-build-ows:
+build-ows: ## Build OWS Docker image
 	@echo "$(BLUE)Building ows docker image...$(NC)"
 	$(DOCKER_COMPOSE) build ows
 
-build-all: build-odc build-jupyter build-ows
+build-all: build-odc build-jupyter build-ows ## Build all Docker images
 	@echo "$(GREEN)All Docker images built successfully!$(NC)"
 
-setup-config:
+# =========================
+# Environment / configuration
+# =========================
+.PHONY: setup check-config
+
+setup: ## Create .env and generate datacube.conf
+	@if [ ! -f .env ]; then \
+		cp .env.example .env; \
+		echo "$(GREEN)Created .env file from template.$(NC)"; \
+	else \
+		echo "$(YELLOW).env file already exists. Skipping.$(NC)"; \
+	fi
 	@echo "$(BLUE)Generating datacube.conf from template...$(NC)"
 	@chmod +x scripts/generate_config.sh
 	@export $$(grep -v '^#' .env | xargs) && ./scripts/generate_config.sh
 	@echo "$(GREEN)Configuration generated successfully!$(NC)"
 
-init:
-	@if [ ! -f .env ]; then \
-		cp .env.example .env; \
-		echo "$(GREEN)Created .env file from template. Please edit with your local settings.$(NC)"; \
-	else \
-		echo "$(YELLOW).env file already exists. Skipping.$(NC)"; \
-	fi
-	@$(MAKE) setup-config
 
-ows-init: setup-config
-	@echo "$(BLUE)Initializing OWS...$(NC)"
-	@export $$(grep -v '^#' .env | xargs) && \
-	echo "${BLUE}Check Datacube Connection:${NC}" && \
-	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube system check && \
-	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update --schema --write-role $$ODC_DEFAULT_DB_USERNAME && \
-	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update s2_l2a && \
-	echo "$(GREEN)OWS Initialized$(NC)"
+check-config: ## Check datacube configuration (runs inside ODC container)
+	@echo "$(BLUE)Checking datacube configuration...$(NC)"
+	$(DOCKER_COMPOSE) exec odc datacube system check
 
-check-env:
-	@echo "$(BLUE)Environment variables:$(NC)"
-	@grep -v '^#' .env | sort
-	@echo "$(BLUE)Docker environment check:$(NC)"
-	@$(DOCKER_COMPOSE) config | grep -E 'POSTGRES_|JUPYTER_PORT'
-
-check-config:
-	@echo "$(BLUE)Checking datacube configuration:$(NC)"
-	@if [ -f datacube.conf ]; then \
-		cat datacube.conf; \
-	else \
-		echo "$(RED)datacube.conf not found!$(NC)"; \
-	fi
-	@echo "\n$(BLUE)Environment variables in .env:$(NC)"
-	@grep -v '^#' .env | sort
-
-up: setup-config
+# =========================
+# Service lifecycle
+# =========================
+.PHONY: up up-all up-jupyter up-jupyter-dev up-explorer up-ows stop down rmvol restart ps logs clean
+up: ## Start base services
 	@echo "$(BLUE)Starting Piksel Base services...$(NC)"
 	@export $$(grep -v '^#' .env | xargs) && \
 	$(DOCKER_COMPOSE) up -d && \
@@ -173,62 +88,62 @@ up: setup-config
 	echo "To Start With Jupyter Notebook: $(BLUE)make up-jupyter$(NC)" && \
 	echo "To Start With Datacube Explorer: $(BLUE)make up-explorer$(NC)"
 
-up-jupyter: setup-config
+up-jupyter: ## Start services with Jupyter profile
 	@echo "$(BLUE)Starting Piksel Base services...$(NC)"
 	@export $$(grep -v '^#' .env | xargs) && \
 	COMPOSE_PROFILES=jupyter $(DOCKER_COMPOSE) up -d && \
 	echo "$(GREEN)Services started. Jupyter is available at http://localhost:$$JUPYTER_PORT$(NC)"
 
-up-jupyter-dev: setup-config
+up-jupyter-dev: ## Start services with Jupyter dev profile
 	@echo "$(BLUE)Starting With Jupyter Development Container...$(NC)"
 	@export $$(grep -v '^#' .env | xargs) && \
 	COMPOSE_PROFILES=jupyter-dev $(DOCKER_COMPOSE) up -d && \
 	echo "$(GREEN)Services started. Jupyter is available at http://localhost:$$JUPYTER_PORT$(NC)"
 
-up-explorer: setup-config
+up-explorer: setup-config ## Start services with Explorer profile
 	@echo "$(BLUE)Starting Piksel Base services...$(NC)"
 	@export $$(grep -v '^#' .env | xargs) && \
 	COMPOSE_PROFILES=explorer $(DOCKER_COMPOSE) up -d && \
 	echo "$(GREEN)Services started. Datacube Explorer is available at http://localhost:$$EXPLORER_PORT$(NC)"
 
-up-ows: setup-config
+up-ows: ## Start services with OWS profile
 	@echo "$(BLUE)Starting Piksel OWS service...$(NC)"
 	@export $$(grep -v '^#' .env | xargs) && \
 	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) up -d && \
 	echo "$(GREEN)OWS started. Available at http://localhost:$${OWS_PORT:-8000}$(NC)"
 
-up-all: setup-config
+up-all: ## Start services with Jupyter + Explorer + OWS profiles
 	@echo "$(BLUE)Starting Piksel Base services...$(NC)"
 	@export $$(grep -v '^#' .env | xargs) && \
 	COMPOSE_PROFILES=jupyter,explorer,ows $(DOCKER_COMPOSE) up -d && \
 	echo "$(GREEN)Services started. Jupyter is available at http://localhost:$$JUPYTER_PORT$(NC)" && \
 	echo "$(GREEN)Services started. Datacube Explorer is available at http://localhost:$$EXPLORER_PORT$(NC)"
 
-stop:
+stop: ## Stop project containers (without removing)
 	@echo "$(BLUE)Stopping Piksel services...$(NC)"
 	$(DOCKER_COMPOSE) stop
 
-down:
+down: ## Stop and remove containers (preserve volumes)
 	@echo "$(BLUE)Stopping and removing Piksel containers (preserving volumes)...$(NC)"
 	COMPOSE_PROFILES=jupyter,jupyter-dev,explorer,ows $(DOCKER_COMPOSE) down
 
-rmvol:
+rmvol: ## Stop and remove containers + volumes (destructive)
 	@echo "$(BLUE)Stopping and removing Piksel containers and volumes...$(NC)"
 	COMPOSE_PROFILES=jupyter,jupyter-dev,explorer,ows $(DOCKER_COMPOSE) down -v
 
-restart:
+restart: ## Restart all services
 	@echo "$(BLUE)Restarting Piksel services...$(NC)"
 	$(DOCKER_COMPOSE) restart
 
-ps:
+ps: ## Show service status
 	@echo "$(BLUE)Piksel service status:$(NC)"
 	$(DOCKER_COMPOSE) ps
 
-logs:
+logs: ## Tail logs from all services
 	@echo "$(BLUE)Viewing Piksel logs (press Ctrl+C to exit)...$(NC)"
 	$(DOCKER_COMPOSE) logs -f
 
-clean:
+clean: ## Prune unused Docker resources (prompts; affects whole Docker host)
 	@echo $(YELLOW)"WARNING: This will prune ALL unused Docker resources."$(NC)
 	@echo "Do you want to proceed? (y/n)"; \
 	read ans; \
@@ -238,9 +153,29 @@ clean:
 		echo "Aborted clean."; \
 	fi
 
-# DataCube System and Spatial Index Commands
-.PHONY: init-db reset-db spindex-create spindex-update backup-db psql, update-metadata
-init-db:
+# =========================
+# OWS / Explorer initialization
+# =========================
+.PHONY: ows-init cubedash-init
+ows-init: ## Initialize OWS (schema + product config)
+	@echo "$(BLUE)Initializing OWS...$(NC)"
+	@export $$(grep -v '^#' .env | xargs) && \
+	echo "${BLUE}Check Datacube Connection:${NC}" && \
+	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube system check && \
+	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update --schema --write-role $$ODC_DEFAULT_DB_USERNAME && \
+	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update s2_l2a && \
+	echo "$(GREEN)OWS Initialized$(NC)"
+
+cubedash-init: ## Initialize Datacube Explorer (Cubedash)
+	@echo "$(BLUE)Initializing Datacube Explorer...$(NC)"
+	$(DOCKER_COMPOSE) exec datacube-explorer cubedash-gen --init --all
+
+# =========================
+# Database / Datacube system
+# =========================
+.PHONY: init-db reset-db spindex-create spindex-update backup-db psql update-metadata
+
+init-db: ## Initialize ODC database: ensure PostGIS, datacube init, and check
 	@echo "$(BLUE)Initializing ODC database for environment '$(ENVIRONMENT)'...$(NC)"
 	@echo "$(BLUE)1. Checking PostgreSQL connection...$(NC)"
 	@$(DOCKER_COMPOSE) exec postgres psql -U piksel_user -d piksel_db -c "SELECT version();" || { echo "$(RED)Failed to connect to PostgreSQL$(NC)"; exit 1; }
@@ -254,8 +189,7 @@ init-db:
 	@$(DOCKER_COMPOSE) exec odc bash -c "datacube product list" || echo "$(YELLOW)No products available yet. This is normal for a fresh installation.$(NC)"
 	@echo "$(GREEN)ODC database initialization successful!$(NC)"
 
-
-reset-db:
+reset-db: ## Reset ODC database (drops public schema; destructive)
 	@echo "$(RED)WARNING: This will destroy all data in the ODC database for environment '$(ENVIRONMENT)'!$(NC)"
 	@read -p "Are you sure you want to proceed? [y/N] " confirm; \
 	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
@@ -269,62 +203,58 @@ reset-db:
 		echo "$(BLUE)Database reset cancelled$(NC)"; \
 	fi
 
-spindex-create:
+spindex-create: ## Create spatial index (EPSG=$(EPSG))
 	@echo "$(BLUE)Adding spatial index for EPSG:$(EPSG)...$(NC)"
 	$(DOCKER_COMPOSE) exec odc datacube spindex create $(EPSG)
 
-spindex-update:
+spindex-update: ## Update spatial index (EPSG=$(EPSG))
 	@echo "$(BLUE)Updating spatial index for EPSG:$(EPSG)...$(NC)"
 	$(DOCKER_COMPOSE) exec odc datacube spindex update $(EPSG)
 
-backup-db:
+backup-db: ## Backup the database to ./backups (gzip)
 	@echo "$(BLUE)Backing up ODC database...$(NC)"
 	@mkdir -p ./backups
 	@timestamp=$$(date +%Y%m%d_%H%M%S); \
 	$(DOCKER_COMPOSE) exec -T postgres pg_dump -U piksel_user piksel_db | gzip > ./backups/piksel_db_$$timestamp.sql.gz; \
 	@echo "$(GREEN)Database backup created in ./backups$(NC)"
 
-psql:
+psql: ## Open an interactive PostgreSQL shell
 	@echo "$(BLUE)Connecting to PostgreSQL database...$(NC)"
 	$(DOCKER_COMPOSE) exec postgres psql -U piksel_user -d piksel_db
 
-update-metadata:
+update-metadata: ## Add or update metadata definition
 	@echo "$(BLUE)Adding or updating metadata definition...$(NC)"
 	@$(DOCKER_COMPOSE) exec odc bash -c "datacube metadata update --allow-unsafe /home/venv/metadata/custom_metadata.odc-type.yaml"
 	@echo "$(GREEN)Metadata add/update complete!$(NC)"
 
-cubedash-init: 
-	@echo "$(BLUE)Initializing Datacube Explorer...$(NC)"
-	$(DOCKER_COMPOSE) exec datacube-explorer cubedash-gen --init --all
-
+# =========================
 # Product commands
-.PHONY: list-products all-products add-product rm-product check
-
-check:
+# =========================
+.PHONY: check list-products all-products add-product rm-product
+check: ## Run 'datacube system check' inside ODC container
 	@echo "$(BLUE)Checking system...$(NC)"
 	$(DOCKER_COMPOSE) exec odc datacube system check
 
-list-products:
+list-products: ## List all registered ODC products
 	@echo "${BLUE}Listing ODC products:${NC}"
 	$(DOCKER_COMPOSE) exec odc datacube product list
 
-all-products:
+all-products: ## Add all product YAMLs from ./products/*.yaml
 	@echo "${BLUE}Adding all product definitions...${NC}"
 	@for product in products/*.yaml; do \
 		echo "${YELLOW}Adding product: $$product${NC}"; \
 		$(DOCKER_COMPOSE) exec -T odc bash -c "datacube product add /home/venv/products/$$(basename $$product)" || echo "${RED}Failed to add product: $$product${NC}"; \
 	done
 
-add-product:
-	@if [ -z "$(P)" ]; then \
-		echo "${RED}Error: Missing product file. Usage: make add-product P=<product.yaml>${NC}"; \
+add-product: ## Add a specific product definition (usage: make add-product F=<product.yaml>)
+	@if [ -z "$(F)" ]; then \
+		echo "${RED}Error: Missing product file. Usage: make add-product F=<product.yaml>${NC}"; \
 		exit 1; \
 	fi
-	@echo "${BLUE}Adding product definition: $(P)${NC}"
-	$(DOCKER_COMPOSE) exec -T odc bash -c "datacube product add /home/venv/products/$(P)"
-	
+	@echo "${BLUE}Adding product definition: $(F)${NC}"
+	$(DOCKER_COMPOSE) exec -T odc bash -c "datacube product add /home/venv/products/$(F)"
 
-rm-product:
+rm-product: ## Remove a product by name (usage: make rm-product P=<product_name>)
 	@if [ -z "$(P)" ]; then \
 		echo "${RED}Error: Missing product name. Usage: make rm-product P=<product_name>${NC}"; \
 		exit 1; \
@@ -332,17 +262,15 @@ rm-product:
 	@echo "${YELLOW}Deleting product: $(P)${NC}"
 	$(DOCKER_COMPOSE) exec -T odc bash -c "echo 'y' | datacube product delete --force $(P)"
 
+# =========================
 # Indexing commands
-# STAC Catalog URLs
+# =========================
 LANDSATLOOK ?= https://landsatlook.usgs.gov/stac-server/
 
-# Default parameters for indexing
 Bbox ?= 105,-8,106,-5
 Date ?= 2022-01-01/2022-07-31
 CollectionS2 ?= sentinel-2-l2a
 
-
-# Default parameters for LSX indexing (adjust these as appropriate)
 DateLsOld ?= 2000-01-01/2000-07-31
 CollectionLsSR ?= landsat-c2l2-sr
 CollectionLsST ?= landsat-c2l2-st
@@ -350,20 +278,18 @@ CollectionLsST ?= landsat-c2l2-st
 LIMIT ?= 9999
 
 .PHONY: index-sentinel2 index-s1-rtc index-ls9-st index-ls8-st index-ls7-st index-ls5-st \
-	index-ls9-sr index-ls8-sr index-ls7-sr index-ls5-sr index-all
+	index-ls9-sr index-ls8-sr index-ls7-sr index-ls5-sr index-all index-landsat index-landsat-sr index-landsat-st
 
-# Index all products
-index-all: index-sentinel2 index-landsat index-s1-rtc
+index-all: index-sentinel2 index-landsat index-s1-rtc ## Index Sentinel-2 + Landsat + Sentinel-1
 	@echo "$(GREEN)All products indexed successfully!$(NC)"
 
-index-landsat-sr: index-ls9-sr index-ls8-sr index-ls7-sr index-ls5-sr
+index-landsat-sr: index-ls9-sr index-ls8-sr index-ls7-sr index-ls5-sr ## Index Landsat surface reflectance (SR)
 
-index-landsat-st: index-ls9-st index-ls8-st index-ls7-st index-ls5-st
+index-landsat-st: index-ls9-st index-ls8-st index-ls7-st index-ls5-st ## Index Landsat surface temperature (ST)
 
-index-landsat: index-landsat-sr index-landsat-st
+index-landsat: index-landsat-sr index-landsat-st ## Index all Landsat SR + ST
 
-# Sentinel-2 L2A
-index-sentinel2:
+index-sentinel2: ## Index Sentinel-2 L2A via STAC (params: Bbox, Date, CollectionS2)
 	@echo "$(BLUE)Indexing Sentinel-2 L2A data...$(NC)"
 	$(DOCKER_COMPOSE) exec odc \
 	  stac-to-dc --catalog-href='https://earth-search.aws.element84.com/v1/' \
@@ -372,8 +298,7 @@ index-sentinel2:
 	            --datetime='$(Date)' \
 	            --rename-product='s2_l2a'
 
-# Landsat Surface Temperature
-index-ls9-st:
+index-ls9-st: ## Index Landsat-9 Surface Temperature via STAC
 	@echo "$(BLUE)Indexing LS9 C2L2 ST data...$(NC)"
 	$(DOCKER_COMPOSE) exec odc \
 	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
@@ -385,7 +310,7 @@ index-ls9-st:
 	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_9\"]}}" \
 
-index-ls8-st:
+index-ls8-st: ## Index Landsat-8 Surface Temperature via STAC
 	@echo "$(BLUE)Indexing LS8 C2L2 ST data...$(NC)"
 	$(DOCKER_COMPOSE) exec odc \
 	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
@@ -397,7 +322,7 @@ index-ls8-st:
 	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_8\"]}}" \
 
-index-ls7-st:
+index-ls7-st: ## Index Landsat-7 Surface Temperature via STAC
 	@echo "$(BLUE)Indexing LS7 C2L2 ST data...$(NC)"
 	$(DOCKER_COMPOSE) exec odc \
 	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
@@ -409,7 +334,7 @@ index-ls7-st:
 	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_7\"]}}" \
 
-index-ls5-st:
+index-ls5-st: ## Index Landsat-5 Surface Temperature via STAC
 	@echo "$(BLUE)Indexing LS5 C2L2 ST data...$(NC)"
 	$(DOCKER_COMPOSE) exec odc \
 	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
@@ -421,8 +346,7 @@ index-ls5-st:
 	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_5\"]}}" \
 
-# Landsat Surface Reflectance
-index-ls9-sr:
+index-ls9-sr: ## Index Landsat-9 Surface Reflectance via STAC
 	@echo "$(BLUE)Indexing LS9 C2L2 SR data...$(NC)"
 	$(DOCKER_COMPOSE) exec odc \
 	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
@@ -434,20 +358,19 @@ index-ls9-sr:
 	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_9\"]}}" \
 
-
-index-ls8-sr:
+index-ls8-sr: ## Index Landsat-8 Surface Reflectance via STAC
 	@echo "$(BLUE)Indexing LS8 C2L2 SR data...$(NC)"
 	$(DOCKER_COMPOSE) exec odc \
 	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
 	            --bbox='$(Bbox)' \
 	            --collections='$(CollectionLsSR)' \
 	            --datetime='$(Date)' \
-	            --rename-product='ls8_c2l2_sr' \
+				--rename-product='ls8_c2l2_sr' \
 				--url-string-replace='https://landsatlook.usgs.gov/data,s3://usgs-landsat' \
 	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_8\"]}}" \
 
-index-ls7-sr:
+index-ls7-sr: ## Index Landsat-7 Surface Reflectance via STAC
 	@echo "$(BLUE)Indexing LS7 C2L2 SR data...$(NC)"
 	$(DOCKER_COMPOSE) exec odc \
 	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
@@ -459,7 +382,7 @@ index-ls7-sr:
 	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_7\"]}}" \
 
-index-ls5-sr:
+index-ls5-sr: ## Index Landsat-5 Surface Reflectance via STAC
 	@echo "$(BLUE)Indexing LS5 C2L2 SR data...$(NC)"
 	$(DOCKER_COMPOSE) exec odc \
 	  stac-to-dc --catalog-href='${LANDSATLOOK}' \
@@ -471,27 +394,29 @@ index-ls5-sr:
 	            --limit=$(LIMIT) \
 	            --options="query={\"platform\":{\"in\":[\"LANDSAT_5\"]}}" \
 
-index-s1-rtc:
+index-s1-rtc: ## Index Sentinel-1 RTC via STAC
 	@echo "$(BLUE)Indexing Sentinel-1 RTC data...$(NC)"
 	$(DOCKER_COMPOSE) exec odc \
 	  stac-to-dc --catalog-href='https://planetarycomputer.microsoft.com/api/stac/v1/' \
 	            --bbox='$(Bbox)' \
 	            --collections='sentinel-1-rtc' \
 	            --datetime='$(Date)' \
-	            --rename-product='s1_rtc'
-	            --limit=$(LIMIT) 
+	            --rename-product='s1_rtc' \
+	            --limit=$(LIMIT)
 
+# =========================
 # Utility commands
+# =========================
 .PHONY: bash-odc bash-jupyter jupyter-token
-bash-odc:
+bash-odc: ## Open a shell in the ODC container
 	@echo "${BLUE}Opening shell in ODC container...${NC}"
 	$(DOCKER_COMPOSE) exec odc bash
 
-bash-jupyter:
+bash-jupyter: ## Open a shell in the Jupyter container
 	@echo "${BLUE}Opening shell in Jupyter container...${NC}"
 	$(DOCKER_COMPOSE) exec jupyter bash
 
-jupyter-token:
+jupyter-token: ## Print Jupyter token URL (if token auth enabled)
 	@echo "${BLUE}Getting Jupyter token...${NC}"
 	@token=$$($(DOCKER_COMPOSE) exec -T jupyter jupyter server list | grep -oP "token=\K[^[:space:]]*" || echo "No token found"); \
 	if [ "$$token" != "No token found" ]; then \
@@ -501,29 +426,26 @@ jupyter-token:
 		echo "${GREEN}Jupyter URL: http://localhost:8888/${NC}"; \
 	fi
 
-# Dependencies management commands
-.PHONY: compile-deps compile-odc-deps compile-jupyter-deps  update-deps
-
-# Compile all dependencies
-compile-deps: compile-odc-deps compile-jupyter-deps 
+# =========================
+# Dependency management (uv)
+# =========================
+.PHONY: compile-deps compile-odc-deps compile-jupyter-deps update-deps
+compile-deps: compile-odc-deps compile-jupyter-deps ## Compile ODC + Jupyter dependency lockfiles
 	@echo "$(GREEN)All dependencies compiled successfully!$(NC)"
 
-# Compile ODC dependencies
-compile-odc-deps:
+compile-odc-deps: ## Compile ODC dependencies (docker/odc/requirements.in -> requirements.txt)
 	@echo "$(BLUE)Compiling ODC dependencies using uv...$(NC)"
 	@command -v uv >/dev/null 2>&1 || curl -LsSf https://astral.sh/uv/install.sh | sh
 	@uv pip compile docker/odc/requirements.in -o docker/odc/requirements.txt
 	@echo "$(GREEN)ODC dependencies compiled!$(NC)"
 
-# Compile Jupyter dependencies
-compile-jupyter-deps:
+compile-jupyter-deps: ## Compile Jupyter dependencies (docker/jupyter/requirements.in -> requirements.txt)
 	@echo "$(BLUE)Compiling Jupyter dependencies using uv...$(NC)"
 	@command -v uv >/dev/null 2>&1 || curl -LsSf https://astral.sh/uv/install.sh | sh
 	@uv pip compile docker/jupyter/requirements.in -o docker/jupyter/requirements.txt
 	@echo "$(GREEN)Jupyter dependencies compiled!$(NC)"
 
-# Update all dependencies to latest versions
-update-deps:
+update-deps: ## Update ODC + Jupyter dependencies to latest versions (uv --upgrade)
 	@echo "$(BLUE)Updating all dependencies to their latest versions using uv...$(NC)"
 	@command -v uv >/dev/null 2>&1 || curl -LsSf https://astral.sh/uv/install.sh | sh
 	@echo "$(YELLOW)Updating ODC dependencies...$(NC)"
@@ -532,48 +454,43 @@ update-deps:
 	@uv pip compile docker/jupyter/requirements.in -o docker/jupyter/requirements.txt --upgrade
 	@echo "$(GREEN)All dependencies updated successfully!$(NC)"
 
-# Test Settings
+# =========================
+# Testing
+# =========================
 TEST_PROJECT_NAME := piksel-test
 TEST_VENV_DIR := .venv
 PYTEST_ARGS ?= -v
 
-# Test commands
-.PHONY: test-up test-down test-logs test-ps test test-venv test-deps test-verbose test-clean
+.PHONY: test-up test-down test-logs test test-venv test-deps test-unit test-integration test-verbose test-clean
 
-# Start test environment with test project name (creates isolated network)
-test-up: setup-config
+test-up: ## Start Docker test environment (isolated project name)
 	@echo "$(BLUE)Starting Piksel test services...$(NC)"
 	@export $$(grep -v '^#' .env | xargs) && \
 	docker compose --env-file .env -f $(COMPOSE_FILE_TEST) -p $(TEST_PROJECT_NAME) up -d && \
 	echo "$(GREEN)Test services started with project name: $(TEST_PROJECT_NAME)$(NC)"
 
-# Stop and remove test services
-test-down:
+test-down: ## Stop and remove Docker test environment (including volumes)
 	@echo "$(BLUE)Stopping and removing Piksel test containers...$(NC)"
-	docker compose --env-file .env -f $(COMPOSE_FILE_TEST) -p $(TEST_PROJECT_NAME) down -v 
+	docker compose --env-file .env -f $(COMPOSE_FILE_TEST) -p $(TEST_PROJECT_NAME) down -v
 	@echo "$(GREEN)Test environment removed$(NC)"
 
-# View logs from test services
-test-logs:
+test-logs: ## Tail logs from Docker test environment
 	@echo "$(BLUE)Viewing Piksel test logs (press Ctrl+C to exit)...$(NC)"
 	docker compose --env-file .env -f $(COMPOSE_FILE_TEST) -p $(TEST_PROJECT_NAME) logs -f
 
-# Create a Python virtual environment for testing
-test-venv:
+test-venv: ## Create a Python virtual environment for tests (.venv)
 	@echo "$(BLUE)Creating Python virtual environment for testing...$(NC)"
 	python3 -m venv $(TEST_VENV_DIR)
 	@echo "$(GREEN)Virtual environment created at $(TEST_VENV_DIR)$(NC)"
 	@echo "$(YELLOW)Activate with: source $(TEST_VENV_DIR)/bin/activate$(NC)"
 
-# Install test dependencies in virtual environment
-test-deps: test-venv
+test-deps: test-venv ## Install test dependencies into .venv
 	@echo "$(BLUE)Installing test dependencies...$(NC)"
 	$(TEST_VENV_DIR)/bin/pip install --upgrade pip
 	$(TEST_VENV_DIR)/bin/pip install pytest pytest-cov python-dotenv pyyaml
 	@echo "$(GREEN)Test dependencies installed$(NC)"
 
-# Run tests (requires virtual environment)
-test: test-up
+test: test-up ## Start test stack, run all tests (host .venv), then teardown
 	@echo "$(BLUE)Running tests...$(NC)"
 	@if [ ! -d "$(TEST_VENV_DIR)" ]; then \
 		echo "$(RED)Virtual environment not found. Run 'make test-deps' first.$(NC)"; \
@@ -585,7 +502,7 @@ test: test-up
 	  $(MAKE) test-down > /dev/null 2>&1 ; \
 	  exit $$test_exit )
 
-test-unit: 
+test-unit: ## Run unit tests only (host .venv; does not start docker)
 	@echo "$(BLUE)Running unit tests...$(NC)"
 	@if [ ! -d "$(TEST_VENV_DIR)" ]; then \
 		echo "$(RED)Virtual environment not found. Run 'make test-deps' first.$(NC)"; \
@@ -593,7 +510,7 @@ test-unit:
 	fi
 	$(TEST_VENV_DIR)/bin/pytest $(PYTEST_ARGS) tests/unit
 
-test-integration: test-up
+test-integration: test-up ## Start test stack, run integration tests, then teardown
 	@echo "$(BLUE)Running integration tests...$(NC)"
 	@if [ ! -d "$(TEST_VENV_DIR)" ]; then \
 		echo "$(RED)Virtual environment not found. Run 'make test-deps' first.$(NC)"; \
@@ -605,11 +522,10 @@ test-integration: test-up
 	  exit $$test_exit )
 
 test-verbose: PYTEST_ARGS=-xvs
-test-verbose: test
+test-verbose: test ## Run all tests with verbose pytest output
 	@echo "$(GREEN)Test complete$(NC)"
-	# Add this with your other test commands
 
-test-clean: test-down
+test-clean: test-down ## Remove test containers, caches, coverage, and .venv
 	@echo "$(BLUE)Cleaning up all test artifacts...$(NC)"
 	@echo "$(YELLOW)Cleaning up Docker test networks...$(NC)"
 	@docker network prune -f --filter "name=$(TEST_PROJECT_NAME)" 2>/dev/null || true
