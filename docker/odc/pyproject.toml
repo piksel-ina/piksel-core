@@ -1,0 +1,44 @@
+[project]
+name = "odc-app"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+  
+  # Core ODC packages
+  "odc-geo",
+  "odc-stac",
+  "odc-cloud",
+  "odc-apps-dc-tools>=1.9.3",
+  "datacube==1.9.10",
+
+  # Additional dependencies
+  "boto3",
+  "psycopg2-binary",
+  "lark",
+  "sqlalchemy",
+  "alembic",
+  "geoalchemy2",
+  "antimeridian",
+  "jsonschema",
+  "datadog",
+  "boltons",
+  "cattrs",
+  "ciso8601",
+  "urlpath",
+  "click",
+  "fsspec",
+  "pystac-client",
+  "ruamel.yaml",
+  "toolz",
+  "pyyaml",
+  "scipy",
+  "deprecat",
+  "importlib_resources",
+  "Jinja2",
+  "aiobotocore",
+  "aiohttp",
+  "requests",
+  "fsspec[http]",
+
+  "rasterio",
+]

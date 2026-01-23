@@ -5,28 +5,26 @@ WORKDIR /app
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install UV from Astral
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Install essential build dependencies
 RUN apt-get update && apt-get install -y \
-      git \
-      libpq-dev \
       build-essential \
+      git \
+      python3-venv \
       python3-dev \
+      libpq-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Create virtual environment with UV
-ENV VIRTUAL_ENV=/home/venv
-RUN uv venv $VIRTUAL_ENV
+ENV VIRTUAL_ENV=/opt/venv
+RUN uv venv "$VIRTUAL_ENV"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Copy requirements
-COPY docker/odc/requirements.txt /app/requirements.txt
 
-# Install Python packages with UV
-RUN uv pip install --no-cache -r requirements.txt
+COPY docker/odc/pyproject.toml /app/pyproject.toml
+
+RUN uv lock
+RUN uv sync --active --frozen --no-cache
 
 # Runtime stage
 FROM ghcr.io/osgeo/gdal:${GDAL_VERSION}
@@ -37,24 +35,21 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update && apt-get install -y \
       postgresql-client \
       gettext-base \
+      git \
+      libpq5 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy virtual environment from builder
-COPY --from=builder /home/venv /home/venv
-ENV PATH="/home/venv/bin:$PATH"
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy configuration to root's home
 COPY datacube.conf.template /root/.datacube.conf.template
 
-# Create user 'odc'
 RUN useradd -m -s /bin/bash odc
 
-# Copy template to odc's home and set permissions
 COPY datacube.conf.template /home/odc/.datacube.conf.template
 RUN chown odc:odc /home/odc/.datacube.conf.template
 
-# Copy entrypoint
 COPY docker/odc/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 

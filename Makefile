@@ -268,7 +268,7 @@ rm-product: ## Remove a product by name (usage: make rm-product P=<product_name>
 LANDSATLOOK ?= https://landsatlook.usgs.gov/stac-server/
 
 Bbox ?= 105,-8,106,-5
-Date ?= 2022-01-01/2022-07-31
+Date ?= 2024-01-01/2024-05-31
 CollectionS2 ?= sentinel-2-l2a
 
 DateLsOld ?= 2000-01-01/2000-07-31
