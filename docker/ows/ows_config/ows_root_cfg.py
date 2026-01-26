@@ -7,6 +7,8 @@ Root OWS configuration - global settings
 service_title = "Indonesia OpenDataCube Web Services"
 service_abstract = """
 Earth observation data and derived products from Digital Earth Indonesia.
+
+Configured by: muhammad.taufik@big.go.id
 """
 
 service_keywords = [
@@ -55,14 +57,8 @@ published_CRSs = {
 allowed_urls = [ 
     "http://localhost:8000",
     "http://127.0.0.1:8000",
-
-    # Uncached OWS endpoint
-    "https://ows-uncached.staging.pik-sel.id",
-    "https://ows-uncached.pik-sel.id",
-    
-    # PUBLIC ENDPOINT
-    "https://ows.staging.pik-sel.id",
-    "https://ows.pik-sel.id",
+    "https://ows.staging.piksel.big.go.id",
+    "https://ows-uncached.staging.piksel.big.go.id",
 ]
 
 # Enabled services

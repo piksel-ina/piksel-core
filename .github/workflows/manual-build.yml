@@ -34,7 +34,7 @@ jobs:
             "dev-jupyter") DOCKERFILE="./docker/jupyter-dev/Dockerfile" ;;
           esac
 
-          DATE_TAG="v$(date +'%Y%m%d')"
+          DATE_TAG="v$(date +'%Y%m%d-%H%M')"
 
           echo "component=$COMPONENT" >> $GITHUB_OUTPUT
           echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
