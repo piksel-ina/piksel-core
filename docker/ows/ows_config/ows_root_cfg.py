@@ -55,8 +55,6 @@ published_CRSs = {
 
 # Allowed URLs 
 allowed_urls = [ 
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
     "https://ows.staging.piksel.big.go.id",
     "https://ows-uncached.staging.piksel.big.go.id",
 ]
