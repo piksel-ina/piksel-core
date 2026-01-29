@@ -10,9 +10,7 @@ from ..bands.sentinel2_bands import SENTINEL2_BANDS_INFO, SENTINEL2_BANDS
 s2_l2a_layer = {
     "title": "Sentinel-2 L2A Surface Reflectance",
     "abstract": """
-    Sentinel-2 Level-2A Surface Reflectance product.
-    Atmospherically corrected surface reflectance from the MSI sensor.
-    10m spatial resolution for visible and NIR bands, 5-day revisit over Indonesia.
+    This layer is generated from Sentinel-2 L2A Surface Reflectance data harvested from a Sentinel-2 STAC catalogue and indexed into the Open Data Cube. The web services (WMS/WCS/WMTS) are produced on-the-fly from the indexed datacube. Rendering may be slower for large requests or for areas not previously requested due to geographic constraints during data retrieval.
     """,
 
     "keywords": [

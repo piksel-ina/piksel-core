@@ -3,12 +3,9 @@
 Root OWS configuration - global settings
 """
 
-# Service metadata
-service_title = "Indonesia OpenDataCube Web Services"
+service_title = "DE Indonesia Web Services"
 service_abstract = """
 Earth observation data and derived products from Digital Earth Indonesia.
-
-Configured by: muhammad.taufik@big.go.id
 """
 
 service_keywords = [
@@ -17,10 +14,9 @@ service_keywords = [
     "datacube ows"
 ]
 
-# Contact information
 contact_info = {
-    "person": "DE Indonesia Team",
-    "organisation": "Digital Earth Indonesia",
+    "person": "Muhammad Taufik",
+    "organisation": "Badan Informasi Geospasial",
     "position": "",
     "address": {
         "type": "postal",
@@ -30,43 +26,39 @@ contact_info = {
         "postcode": "16920",
         "country": "Indonesia",
     },
-    "email": "piksel@big.go.id",
+    "email": "muhammad.taufik@big.go.id",
     "telephone": "",  
     "fax": ""         
 }
 
-# Supported CRS
 published_CRSs = {
-    "EPSG:3857": {  # Web Mercator
+    "EPSG:3857": {
         "geographic": False,
         "horizontal_coord": "x",
         "vertical_coord": "y",
     },
-    "EPSG:4326": {  # WGS84
+    "EPSG:4326": {
         "geographic": True,
         "vertical_coord_first": True
     },
-    "EPSG:3577": {  # GDA-94, Australian Albers (required by datacube-ows)
+    "EPSG:3577": {
         "geographic": False,
         "horizontal_coord": "x",
         "vertical_coord": "y",
     }
 }
 
-# Allowed URLs 
 allowed_urls = [ 
     "https://ows.staging.piksel.big.go.id",
     "https://ows-uncached.staging.piksel.big.go.id",
 ]
 
-# Enabled services
 services = {
     "wms": True,
     "wcs": True,
     "wmts": True,
 }
 
-# Service-specific settings - Global settings for all products/layers/coverages
 wms = {
     "max_width": 512,
     "max_height": 512,
