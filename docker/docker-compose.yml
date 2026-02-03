@@ -38,11 +38,11 @@ services:
     restart: always
     command: tail -f /dev/null
     healthcheck:
-      test: ["CMD", "test", "-d", "/home/venv/bin"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+      test: ["CMD-SHELL", "datacube system check || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 30s
 
 
   jupyter:
