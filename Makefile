@@ -278,7 +278,7 @@ CollectionLsST ?= landsat-c2l2-st
 LIMIT ?= 9999
 
 .PHONY: index-sentinel2 index-s1-rtc index-ls9-st index-ls8-st index-ls7-st index-ls5-st \
-	index-ls9-sr index-ls8-sr index-ls7-sr index-ls5-sr index-all index-landsat index-landsat-sr index-landsat-st
+	index-ls9-sr index-ls8-sr index-ls7-sr index-ls5-sr index-all index-landsat index-landsat-sr index-landsat-st index-gm-s2-annual
 
 index-all: index-sentinel2 index-landsat index-s1-rtc ## Index Sentinel-2 + Landsat + Sentinel-1
 	@echo "$(GREEN)All products indexed successfully!$(NC)"
@@ -404,6 +404,13 @@ index-s1-rtc: ## Index Sentinel-1 RTC via STAC
 	            --rename-product='s1_rtc' \
 	            --limit=$(LIMIT)
 
+index-gm-s2-annual: ## Index Sentinel-2 Annual Geomedian from S3
+	@echo "$(BLUE)Indexing Sentinel-2 Annual Geomedian...$(NC)"
+	$(DOCKER_COMPOSE) exec odc \
+	  bash -c "AWS_DEFAULT_REGION=ap-southeast-3 s3-to-dc --stac \
+	           --no-sign-request \
+	           's3://piksel-staging-public-data/gm_s2/0.0.1/**/*.stac-item.json' \
+	           'indonesia_geomad_s2_annual'"
 # =========================
 # Utility commands
 # =========================
