@@ -20,6 +20,7 @@ jobs:
     outputs:
       component: ${{ steps.config.outputs.component }}
       dockerfile: ${{ steps.config.outputs.dockerfile }}
+      repository: ${{ steps.config.outputs.repository }}
       date_tag: ${{ steps.config.outputs.date_tag }}
     steps:
       - name: Configure Build
@@ -28,16 +29,29 @@ jobs:
           COMPONENT="${{ inputs.build_target }}"
 
           case $COMPONENT in
-            "odc") DOCKERFILE="./docker/odc/Dockerfile" ;;
-            "ows") DOCKERFILE="./docker/ows/Dockerfile" ;;
-            "jupyter") DOCKERFILE="./docker/jupyter/Dockerfile" ;;
-            "dev-jupyter") DOCKERFILE="./docker/jupyter-dev/Dockerfile" ;;
+            "odc")
+              DOCKERFILE="./docker/odc/Dockerfile"
+              REPOSITORY="odc"
+              ;;
+            "ows")
+              DOCKERFILE="./docker/ows/Dockerfile"
+              REPOSITORY="piksel-core"
+              ;;
+            "jupyter")
+              DOCKERFILE="./docker/jupyter/Dockerfile"
+              REPOSITORY="piksel-core"
+              ;;
+            "dev-jupyter")
+              DOCKERFILE="./docker/jupyter-dev/Dockerfile"
+              REPOSITORY="piksel-core"
+              ;;
           esac
 
           DATE_TAG="v$(TZ='Asia/Jakarta' date +'%Y%m%d-%H%M')"
 
           echo "component=$COMPONENT" >> $GITHUB_OUTPUT
           echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
+          echo "repository=$REPOSITORY" >> $GITHUB_OUTPUT
           echo "date_tag=$DATE_TAG" >> $GITHUB_OUTPUT
 
   call-build:
@@ -51,4 +65,5 @@ jobs:
     with:
       component: ${{ needs.prepare-config.outputs.component }}
       dockerfile: ${{ needs.prepare-config.outputs.dockerfile }}
+      repository: ${{ needs.prepare-config.outputs.repository }}
       image_tag: ${{ needs.prepare-config.outputs.date_tag }}

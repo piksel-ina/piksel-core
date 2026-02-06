@@ -6,15 +6,23 @@ on:
       component:
         required: true
         type: string
-        description: "The component name (e.g., odc)"
+        description: "The component name"
+
       dockerfile:
         required: true
         type: string
         description: "Path to the Dockerfile"
+
       image_tag:
         required: true
         type: string
-        description: "The version suffix (e.g., 20231124)"
+        description: "The version suffix"
+
+      repository:
+        required: true
+        type: string
+        description: "ECR repository name"
+
     secrets:
       AWS_ROLE_ARN:
         required: true
@@ -22,7 +30,7 @@ on:
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   ECR_REGISTRY: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
-  FULL_IMAGE_TAG: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/piksel-core:${{ inputs.component }}-${{ inputs.image_tag }}
+  FULL_IMAGE_TAG: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.repository }}:${{ inputs.image_tag }}
 
 jobs:
   build-push:
@@ -49,7 +57,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.ECR_REGISTRY }}/piksel-core
+          images: ${{ env.ECR_REGISTRY }}/${{ inputs.repository }}
           labels: |
             org.opencontainers.image.title=${{ inputs.component }}
             org.opencontainers.image.version=${{ inputs.image_tag }}
@@ -74,17 +82,10 @@ jobs:
       - name: Create Build Summary
         if: success()
         run: |
-          echo "## Docker Build Report" >> $GITHUB_STEP_SUMMARY
-          echo "The following container image was successfully built and pushed to ECR." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Metric | Details |" >> $GITHUB_STEP_SUMMARY
-          echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Component** | ${{ inputs.component }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Tag** | \`v${{ inputs.image_tag }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Dockerfile** | ${{ inputs.dockerfile }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Image Digest** | \`${{ steps.build.outputs.digest }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Usage" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-          echo "docker pull ${{ env.FULL_IMAGE_TAG }}" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## Docker Build Report
+          The following container image was successfully built and pushed to ECR.
+
+          ### ${{ env.FULL_IMAGE_TAG }}
+
+          EOF
