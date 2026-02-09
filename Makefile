@@ -161,9 +161,8 @@ ows-init: ## Initialize OWS (schema + product config)
 	@echo "$(BLUE)Initializing OWS...$(NC)"
 	@export $$(grep -v '^#' .env | xargs) && \
 	echo "${BLUE}Check Datacube Connection:${NC}" && \
-	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube system check && \
 	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update --schema --write-role $$ODC_DEFAULT_DB_USERNAME && \
-	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update s2_l2a && \
+	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update s2_l2a geomad_s2_annual && \
 	echo "$(GREEN)OWS Initialized$(NC)"
 
 cubedash-init: ## Initialize Datacube Explorer (Cubedash)
@@ -409,8 +408,9 @@ index-gm-s2-annual: ## Index Sentinel-2 Annual Geomedian from S3
 	$(DOCKER_COMPOSE) exec odc \
 	  bash -c "AWS_DEFAULT_REGION=ap-southeast-3 s3-to-dc --stac \
 	           --no-sign-request \
+						 --rename-product="geomad_s2_annual" \
 	           's3://piksel-staging-public-data/gm_s2/0.0.1/**/*.stac-item.json' \
-	           'indonesia_geomad_s2_annual'"
+	           'geomad_s2_annual'"
 # =========================
 # Utility commands
 # =========================

@@ -45,13 +45,21 @@ published_CRSs = {
         "geographic": False,
         "horizontal_coord": "x",
         "vertical_coord": "y",
+    },
+    "EPSG:6933": {
+        "geographic": False,
+        "horizontal_coord": "x",
+        "vertical_coord": "y",
     }
 }
 
 allowed_urls = [ 
+    # "http://localhost:8000",
     "https://ows.staging.piksel.big.go.id",
     "https://ows-uncached.staging.piksel.big.go.id",
 ]
+
+# domain = "http://localhost:8000" 
 
 services = {
     "wms": True,

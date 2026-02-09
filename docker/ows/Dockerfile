@@ -67,13 +67,11 @@ RUN useradd -m -s /bin/bash ows
 COPY datacube.conf.template /home/ows/.datacube.conf.template
 RUN chown ows:ows /home/ows/.datacube.conf.template
 
-# Copy OWS configuration into the image
-COPY docker/ows/ows_config /env/config/ows_config
+# Create config directory with proper permissions
+RUN mkdir -p /env/config && chown -R ows:ows /env/config
 
 ENV PYTHONPATH=/env/config
 ENV DATACUBE_OWS_CFG=ows_config.ows_cfg.ows_cfg
-
-RUN chown -R ows:ows /env/config
 
 # Copy entrypoint
 COPY docker/ows/entrypoint.sh /entrypoint.sh
