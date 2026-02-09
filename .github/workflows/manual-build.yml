@@ -35,7 +35,7 @@ jobs:
               ;;
             "ows")
               DOCKERFILE="./docker/ows/Dockerfile"
-              REPOSITORY="piksel-core"
+              REPOSITORY="ows"
               ;;
             "jupyter")
               DOCKERFILE="./docker/jupyter/Dockerfile"
