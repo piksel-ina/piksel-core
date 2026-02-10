@@ -57,6 +57,8 @@ allowed_urls = [
     # "http://localhost:8000",
     "https://ows.staging.piksel.big.go.id",
     "https://ows-uncached.staging.piksel.big.go.id",
+    "https://*.staging.piksel.big.go.id",
+
 ]
 
 # domain = "http://localhost:8000" 
