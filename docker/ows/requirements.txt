@@ -40,11 +40,14 @@ cachetools==6.2.1
     #   odc-geo
 certifi==2025.10.5
     # via
+    #   netcdf4
     #   pyproj
     #   rasterio
     #   requests
 cffi==2.0.0
     # via timezonefinder
+cftime==1.6.5
+    # via netcdf4
 charset-normalizer==3.4.4
     # via requests
 ciso8601==2.3.3
@@ -68,7 +71,7 @@ cloudpickle==3.1.1
     #   dask
     #   datacube
     #   distributed
-contourpy==1.3.3
+contourpy==1.3.2
     # via matplotlib
 cycler==0.12.1
     # via matplotlib
@@ -105,6 +108,8 @@ fsspec==2025.9.0
     # via
     #   dask
     #   datacube-ows
+gdal==3.10.3
+    # via -r requirements.in
 geoalchemy2==0.18.0
     # via
     #   datacube
@@ -122,7 +127,9 @@ h3==4.3.1
 idna==3.11
     # via requests
 importlib-metadata==8.7.0
-    # via datacube-ows
+    # via
+    #   dask
+    #   datacube-ows
 iso8601==2.1.0
     # via pyows
 itsdangerous==2.2.0
@@ -166,15 +173,19 @@ matplotlib==3.10.7
     # via datacube-ows
 msgpack==1.1.2
     # via distributed
-numpy==2.3.4
+netcdf4==1.7.4
+    # via -r requirements.in
+numpy==2.2.6
     # via
     #   antimeridian
     #   bottleneck
+    #   cftime
     #   contourpy
     #   dask
     #   datacube
     #   datacube-ows
     #   matplotlib
+    #   netcdf4
     #   odc-geo
     #   odc-loader
     #   odc-stac
@@ -235,7 +246,7 @@ pyparsing==3.2.5
     #   datacube-ows
     #   matplotlib
     #   rasterio
-pyproj==3.7.2
+pyproj==3.7.1
     # via
     #   datacube
     #   odc-geo
@@ -285,7 +296,7 @@ ruamel-yaml-clib==0.2.14
     # via ruamel-yaml
 s3transfer==0.14.0
     # via boto3
-scipy==1.16.2
+scipy==1.15.3
     # via datacube-ows
 setuptools==80.9.0
     # via zope-event
@@ -309,6 +320,8 @@ text-unidecode==1.3
     # via python-slugify
 timezonefinder==8.1.0
     # via datacube-ows
+tomli==2.4.0
+    # via alembic
 toolz==1.1.0
     # via
     #   dask
@@ -336,7 +349,7 @@ werkzeug==3.1.3
     # via flask
 wrapt==1.17.3
     # via deprecat
-xarray==2025.10.1
+xarray==2025.6.1
     # via
     #   datacube
     #   datacube-ows

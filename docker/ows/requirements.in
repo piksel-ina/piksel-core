@@ -6,3 +6,5 @@ psycopg2
 datacube
 Pillow
 rasterio
+netCDF4
+gdal==3.10.3

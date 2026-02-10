@@ -42,7 +42,7 @@ SENTINEL2_LIMITS = {
     "wms": {
         "zoomed_out_fill_colour": [150, 180, 200, 160],
         "min_zoom_factor": 50.0, 
-        "dataset_cache_rules": dataset_cache_rules,
+        "dataset_cache_rules": dataset_cache_rules
     },
     "wcs": {
         "max_datasets": 8,
@@ -54,7 +54,7 @@ GEOMAD_S2_LIMIT = {
     "wms": {
         "zoomed_out_fill_colour": [150, 180, 200, 160],
         "min_zoom_factor": 10.0,
-        "dataset_cache_rules": dataset_cache_rules,
+        "dataset_cache_rules": dataset_cache_rules
     },
     "wcs": {
         "max_datasets": 32,

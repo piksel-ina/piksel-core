@@ -27,7 +27,7 @@ geomad_s2_annual_layer = {
     "image_processing": {
         "extent_mask_func": ["ows_config.common.band_utils.mask_by_emad_nan"],
         "always_fetch_bands": ["emad"],
-        "manual_merge": True,
+        "manual_merge": False,
         "apply_solar_corrections": False,
     },
 
