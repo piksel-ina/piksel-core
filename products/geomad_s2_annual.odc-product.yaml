@@ -32,12 +32,36 @@ measurements:
     dtype: uint16
     nodata: 0
 
+  - name: "rededge1"
+    aliases: [band_05, B05, red_edge_1]
+    units: "1"
+    dtype: uint16
+    nodata: 0
+
+  - name: "rededge2"
+    aliases: [band_06, B06, red_edge_2]
+    units: "1"
+    dtype: uint16
+    nodata: 0
+
+  - name: "rededge3"
+    aliases: [band_07, B07, red_edge_3]
+    units: "1"
+    dtype: uint16
+    nodata: 0
+
   - name: "nir"
     aliases: [band_08, B08, nir, nir_1]
     units: "1"
     dtype: uint16
     nodata: 0
 
+  - name: "nir08"
+    aliases: [band_8a, B8A, nir_narrow, nir_2]
+    units: "1"
+    dtype: uint16
+    nodata: 0
+    
   - name: "swir16"
     aliases: [band_11, B11, swir_1, swir_16]
     units: "1"
