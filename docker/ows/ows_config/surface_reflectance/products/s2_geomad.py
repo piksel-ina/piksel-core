@@ -3,7 +3,7 @@ Sentinel-2 GeoMAD product configuration
 """
 from ...common.resource_limits import GEOMAD_S2_LIMIT
 from ..bands.geomad_s2 import GEOMAD_S2_BANDS_INFO, GEOMAD_S2_BANDS
-from ..styles.geomad_s2 import GEOMAD_S2_RGB
+from ..styles.geomad_s2 import GEOMAD_S2_RGB, GEOMAD_S2_NDVI
 
 geomad_s2_annual_layer = {
     "title": "Annual GeoMAD (Sentinel-2)",
@@ -36,6 +36,6 @@ geomad_s2_annual_layer = {
 
     "styling": {
         "default_style": "rgb",
-        "styles": [GEOMAD_S2_RGB],
+        "styles": [GEOMAD_S2_RGB, GEOMAD_S2_NDVI],
     },
 }
