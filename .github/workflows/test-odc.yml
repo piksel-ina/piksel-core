@@ -30,35 +30,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Initialize environment
+      - name: Setup environment and install test dependencies
         run: |
-          # Copy example .env file if not exists
-          cp -n .env.example .env || true
-          # Generate config
-          chmod +x scripts/generate_config.sh
-          source .env
-          ./scripts/generate_config.sh
-
-      - name: Create virtual environment and install test dependencies
-        run: |
-          # Create and activate virtual environment
-          make test-venv
+          make setup
           make test-deps
 
-      - name: Build Docker images Test
-        run: |
-          make test-up
-          # Wait for services to be ready
-          sleep 10
-
-      - name: Run unit and integration tests
+      - name: Run tests
         run: |
           make test
-
-      - name: Clean up test environment
-        if: always()
-        run: |
-          make test-clean
 
       - name: Upload test results
         if: always()

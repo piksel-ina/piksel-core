@@ -12,6 +12,8 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+**/.venv/
+**/venv/
 .env.test
 .venv-test
 ENV/

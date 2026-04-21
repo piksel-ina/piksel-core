@@ -34,8 +34,8 @@ help: ## Show this help
 # =========================
 # Docker image build commands
 # =========================
-.PHONY: build build-jupyter build-jupyter-dev build-ows build-all
-build: ## Build base services (Postgis + ODC)
+.PHONY: build-odc build-jupyter build-jupyter-dev build-ows build-all
+build-odc: ## Build base services (Postgis + ODC)
 	@echo "$(BLUE)Building odc docker image...$(NC)"
 	$(DOCKER_COMPOSE) build odc
 
@@ -100,7 +100,7 @@ up-jupyter-dev: ## Start services with Jupyter dev profile
 	COMPOSE_PROFILES=jupyter-dev $(DOCKER_COMPOSE) up -d && \
 	echo "$(GREEN)Services started. Jupyter is available at http://localhost:$$JUPYTER_PORT$(NC)"
 
-up-explorer: setup-config ## Start services with Explorer profile
+up-explorer: setup ## Start services with Explorer profile
 	@echo "$(BLUE)Starting Piksel Base services...$(NC)"
 	@export $$(grep -v '^#' .env | xargs) && \
 	COMPOSE_PROFILES=explorer $(DOCKER_COMPOSE) up -d && \
