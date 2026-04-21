@@ -16,6 +16,7 @@ jobs:
       component: ${{ steps.parse.outputs.component }}
       dockerfile: ${{ steps.parse.outputs.dockerfile }}
       image_tag: ${{ steps.parse.outputs.image_tag }}
+      repository: ${{ steps.parse.outputs.repository }}
     steps:
       - name: Parse Tag
         id: parse
@@ -26,23 +27,28 @@ jobs:
             COMPONENT="odc"
             IMAGE_TAG="${TAG_NAME#odc-}"
             DOCKERFILE="./docker/odc/Dockerfile"
+            REPOSITORY="odc"
           elif [[ $TAG_NAME == ows-* ]]; then
             COMPONENT="ows"
             IMAGE_TAG="${TAG_NAME#ows-}"
             DOCKERFILE="./docker/ows/Dockerfile"
+            REPOSITORY="ows"
           elif [[ $TAG_NAME == dev-jupyter-* ]]; then
             COMPONENT="dev-jupyter"
             IMAGE_TAG="${TAG_NAME#dev-jupyter-}"
             DOCKERFILE="./docker/jupyter-dev/Dockerfile"
+            REPOSITORY="piksel-core"
           elif [[ $TAG_NAME == jupyter-* ]]; then
             COMPONENT="jupyter"
             IMAGE_TAG="${TAG_NAME#jupyter-}"
             DOCKERFILE="./docker/jupyter/Dockerfile"
+            REPOSITORY="piksel-core"
           fi
 
           echo "component=$COMPONENT" >> $GITHUB_OUTPUT
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
+          echo "repository=$REPOSITORY" >> $GITHUB_OUTPUT
 
   call-build:
     needs: prepare-config
@@ -55,4 +61,5 @@ jobs:
     with:
       component: ${{ needs.prepare-config.outputs.component }}
       dockerfile: ${{ needs.prepare-config.outputs.dockerfile }}
+      repository: ${{ needs.prepare-config.outputs.repository }}
       image_tag: ${{ needs.prepare-config.outputs.image_tag }}
