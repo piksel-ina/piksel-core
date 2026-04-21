@@ -1,0 +1,33 @@
+S2_GEOMAD_14_BANDS_INFO = {
+    "blue": "Blue (490 nm)",
+    "green": "Green (560 nm)",
+    "red": "Red (665 nm)",
+    "nir": "NIR (842 nm)",
+    "nir08": "NIR Broad (865 nm)",
+    "rededge1": "Red Edge 1 (705 nm)",
+    "rededge2": "Red Edge 2 (740 nm)",
+    "rededge3": "Red Edge 3 (783 nm)",
+    "swir16": "SWIR 1 (1610 nm)",
+    "swir22": "SWIR 2 (2190 nm)",
+    "SMAD": "Spectral Median Absolute Deviation",
+    "EMAD": "Euclidean Median Absolute Deviation",
+    "BCMAD": "Bray Curtis Median Absolute Deviation",
+    "COUNT": "Number of observations in composite",
+}
+
+S2_GEOMAD_14_BANDS = {
+    "blue": ["blue"],
+    "green": ["green"],
+    "red": ["red"],
+    "nir": ["nir"],
+    "nir08": ["nir08", "nir_2", "B8A"],
+    "rededge1": ["rededge1", "B05"],
+    "rededge2": ["rededge2", "B06"],
+    "rededge3": ["rededge3", "B07"],
+    "swir16": ["swir16", "swir_16", "swir_1"],
+    "swir22": ["swir22", "swir_22", "swir_2"],
+    "SMAD": ["SMAD", "smad", "sdev", "SDEV"],
+    "EMAD": ["EMAD", "emad", "edev", "EDEV"],
+    "BCMAD": ["BCMAD", "bcmad", "bcdev", "BCDEV"],
+    "COUNT": ["COUNT", "count"],
+}
