@@ -1,0 +1,99 @@
+---
+name: s2_geomad_annual
+description: Sentinel-2 Annual Geometric Median and Median Absolute Deviations for Indonesia (full 14-band)
+metadata_type: eo3
+
+metadata:
+  product:
+    name: s2_geomad_annual
+
+storage:
+  crs: EPSG:6933
+  resolution:
+    x: 10
+    y: -10
+
+measurements:
+  - name: "blue"
+    aliases: [band_02, B02]
+    units: "1"
+    dtype: uint16
+    nodata: 0
+
+  - name: "red"
+    aliases: [band_04, B04]
+    units: "1"
+    dtype: uint16
+    nodata: 0
+
+  - name: "green"
+    aliases: [band_03, B03]
+    units: "1"
+    dtype: uint16
+    nodata: 0
+
+  - name: "nir"
+    aliases: [band_08, B08]
+    units: "1"
+    dtype: uint16
+    nodata: 0
+
+  - name: "nir08"
+    aliases: [band_8a, B8A]
+    units: "1"
+    dtype: uint16
+    nodata: 0
+
+  - name: "rededge1"
+    aliases: [band_05, B05]
+    units: "1"
+    dtype: uint16
+    nodata: 0
+
+  - name: "rededge2"
+    aliases: [band_06, B06]
+    units: "1"
+    dtype: uint16
+    nodata: 0
+
+  - name: "rededge3"
+    aliases: [band_07, B07]
+    units: "1"
+    dtype: uint16
+    nodata: 0
+
+  - name: "swir16"
+    aliases: [band_11, B11, swir_1, swir_16]
+    units: "1"
+    dtype: uint16
+    nodata: 0
+
+  - name: "swir22"
+    aliases: [band_12, B12, swir_2, swir_22]
+    units: "1"
+    dtype: uint16
+    nodata: 0
+
+  - name: "SMAD"
+    aliases: [smad, sdev, SDEV]
+    units: "1"
+    dtype: float32
+    nodata: .nan
+
+  - name: "EMAD"
+    aliases: [emad, edev, EDEV]
+    units: "1"
+    dtype: float32
+    nodata: .nan
+
+  - name: "BCMAD"
+    aliases: [bcmad, bcdev, BCDEV]
+    units: "1"
+    dtype: float32
+    nodata: .nan
+
+  - name: "COUNT"
+    aliases: [count]
+    units: "1"
+    dtype: uint16
+    nodata: 0
