@@ -162,7 +162,7 @@ ows-init: ## Initialize OWS (schema + product config)
 	@export $$(grep -v '^#' .env | xargs) && \
 	echo "${BLUE}Check Datacube Connection:${NC}" && \
 	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update --schema --write-role $$ODC_DEFAULT_DB_USERNAME && \
-	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update s2_l2a geomad_s2_annual && \
+	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update s2_l2a geomad_s2_annual s2_geomad_annual && \
 	echo "$(GREEN)OWS Initialized$(NC)"
 
 cubedash-init: ## Initialize Datacube Explorer (Cubedash)
