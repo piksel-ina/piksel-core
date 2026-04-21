@@ -27,10 +27,9 @@ def datacube_environment():
     
     # Wait for containers to be healthy with better logging
     attempts = 0
-    max_attempts = 10
+    max_attempts = 15
     while attempts < max_attempts:
         try:
-            # Fix the container name to match your naming convention
             result = subprocess.run(
                 ["docker", "inspect", "--format='{{.State.Health.Status}}'", "piksel-test-odc-1"],
                 capture_output=True, text=True
@@ -38,12 +37,25 @@ def datacube_environment():
             if "healthy" in result.stdout:
                 print(f"✓ Test containers ready after {attempts+1} attempts")
                 break
-            print(f"Waiting for containers ({attempts+1}/{max_attempts})...")
-        except subprocess.CalledProcessError as e:
-            print(f"Error checking container status: {e}")
-        time.sleep(3)
+        except subprocess.CalledProcessError:
+            pass
+
+        # Fallback: try running datacube directly even if healthcheck hasn't reported yet
+        try:
+            check = subprocess.run(
+                ["docker", "exec", "piksel-test-odc-1", "datacube", "system", "check"],
+                capture_output=True, text=True, timeout=15
+            )
+            if check.returncode == 0:
+                print(f"✓ ODC container functional after {attempts+1} attempts (datacube check passed)")
+                break
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            pass
+
+        print(f"Waiting for containers ({attempts+1}/{max_attempts})...")
+        time.sleep(5)
         attempts += 1
-    
+
     if attempts >= max_attempts:
         pytest.fail("Test containers did not become healthy within timeout period")
     

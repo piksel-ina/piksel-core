@@ -503,7 +503,7 @@ test-venv: ## Create a Python virtual environment for tests (.venv)
 test-deps: test-venv ## Install test dependencies into .venv
 	@echo "$(BLUE)Installing test dependencies...$(NC)"
 	$(TEST_VENV_DIR)/bin/pip install --upgrade pip
-	$(TEST_VENV_DIR)/bin/pip install pytest pytest-cov python-dotenv pyyaml
+	$(TEST_VENV_DIR)/bin/pip install pytest pytest-cov pytest-dependency python-dotenv pyyaml
 	@echo "$(GREEN)Test dependencies installed$(NC)"
 
 test: test-up ## Start test stack, run all tests (host .venv), then teardown

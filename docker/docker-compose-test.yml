@@ -39,9 +39,9 @@ services:
     healthcheck:
       test: ["CMD", "datacube", "--version"]
       interval: 10s
-      timeout: 5s
+      timeout: 15s
       retries: 5
-      start_period: 10s
+      start_period: 20s
 
 networks:
   default:

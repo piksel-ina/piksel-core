@@ -9,7 +9,7 @@ CONTAINER = "piksel-test-odc-1"
 CONTAINER_PATH = f"/tmp/{os.path.basename(PRODUCT_FILE)}"
 
 
-@pytest.mark.dependency(depends=["test_datacube_init"])
+@pytest.mark.dependency(name="test_add_s2_geomad_annual_product", depends=["test_datacube_init"], scope="session")
 def test_add_s2_geomad_annual_product(datacube_environment):
     assert os.path.exists(PRODUCT_FILE), f"Product definition not found: {PRODUCT_FILE}"
 
@@ -40,7 +40,7 @@ def test_add_s2_geomad_annual_product(datacube_environment):
     assert PRODUCT_NAME in verify.stdout, f"{PRODUCT_NAME} not found in product list"
 
 
-@pytest.mark.dependency(depends=["test_add_s2_geomad_annual_product"])
+@pytest.mark.dependency(name="test_s3_to_dc_s2_geomad_annual", depends=["test_add_s2_geomad_annual_product"], scope="session")
 def test_s3_to_dc_s2_geomad_annual(datacube_environment):
     cmd = [
         "docker", "exec", CONTAINER,
@@ -65,7 +65,7 @@ def test_s3_to_dc_s2_geomad_annual(datacube_environment):
     assert "Added 0 Datasets" not in result.stdout, "No datasets were indexed"
 
 
-@pytest.mark.dependency(depends=["test_s3_to_dc_s2_geomad_annual"])
+@pytest.mark.dependency(name="test_s2_geomad_annual_dataset_count", depends=["test_s3_to_dc_s2_geomad_annual"], scope="session")
 def test_s2_geomad_annual_dataset_count(datacube_environment):
     result = subprocess.run(
         ["docker", "exec", CONTAINER,

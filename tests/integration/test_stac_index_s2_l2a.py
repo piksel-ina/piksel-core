@@ -3,7 +3,7 @@ import pytest
 import subprocess
 import os
 
-@pytest.mark.dependency(depends=["test_datacube_init"])
+@pytest.mark.dependency(name="test_add_sentinel2_product", depends=["test_datacube_init"], scope="session")
 def test_add_sentinel2_product(datacube_environment):
     """Add the Sentinel-2 L2A product definition to the datacube."""
     # Path to the existing product definition file
@@ -44,7 +44,7 @@ def test_add_sentinel2_product(datacube_environment):
     verify_result = subprocess.run(verify_cmd, capture_output=True, text=True)
     assert "s2_l2a" in verify_result.stdout, "Product was not added successfully"
 
-@pytest.mark.dependency(depends=["test_add_sentinel2_product"])
+@pytest.mark.dependency(name="test_stac_to_dc_sentinel2_indonesia", depends=["test_add_sentinel2_product"], scope="session")
 def test_stac_to_dc_sentinel2_indonesia(datacube_environment):
     """Test indexing Sentinel-2 data from STAC for a small region in Indonesia."""
     # Define a small area in Indonesia (Bali area)

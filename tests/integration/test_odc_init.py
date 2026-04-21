@@ -3,7 +3,7 @@ import subprocess
 import os
 
 # This test is responsible for initializing the datacube
-@pytest.mark.dependency()
+@pytest.mark.dependency(name="test_datacube_init", scope="session")
 def test_datacube_init(datacube_environment):
     """Test datacube initialization in the odc container."""
     # Run datacube init command inside the container

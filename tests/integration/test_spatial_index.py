@@ -2,7 +2,7 @@
 import pytest
 import subprocess
 
-@pytest.mark.dependency(depends=["test_datacube_init"])
+@pytest.mark.dependency(name="test_spatial_index_creation", depends=["test_datacube_init"], scope="session")
 def test_spatial_index_creation(datacube_environment):
     """Test that spatial index can be created."""
     try:
