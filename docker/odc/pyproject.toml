@@ -8,8 +8,8 @@ dependencies = [
   "odc-geo",
   "odc-stac",
   "odc-cloud",
-  "odc-apps-dc-tools>=1.9.3",
-  "datacube==1.9.10",
+  "odc-apps-dc-tools>=1.9.9",
+  "datacube==1.9.18",
 
   # Additional dependencies
   "boto3",
