@@ -1,57 +1,58 @@
-# Build stage
 ARG GDAL_VERSION=ubuntu-small-3.12.0
+
+# --- Builder stage ---
 FROM ghcr.io/osgeo/gdal:${GDAL_VERSION} AS builder
-WORKDIR /app
 
-ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=0
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
       build-essential \
-      git \
-      python3-venv \
-      python3-dev \
       libpq-dev \
+      libgeos-dev \
+      python3-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-ENV VIRTUAL_ENV=/opt/venv
-RUN uv venv "$VIRTUAL_ENV"
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+WORKDIR /app
 
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=docker/odc/uv.lock,target=uv.lock \
+    --mount=type=bind,source=docker/odc/pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project --no-dev
 
-COPY docker/odc/pyproject.toml /app/pyproject.toml
+# --- Runtime stage ---
+FROM ghcr.io/osgeo/gdal:${GDAL_VERSION} AS runtime
 
-RUN uv lock
-RUN uv sync --active --frozen --no-cache
-
-# Runtime stage
-FROM ghcr.io/osgeo/gdal:${GDAL_VERSION}
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
       postgresql-client \
       gettext-base \
-      git \
       libpq5 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+COPY --from=builder /app/.venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH"
 
-COPY datacube.conf.template /root/.datacube.conf.template
-
-RUN useradd -m -s /bin/bash odc
+ENV GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR" \
+    CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif,.tiff" \
+    GDAL_HTTP_MAX_RETRY="10" \
+    GDAL_HTTP_RETRY_DELAY="1"
 
 COPY datacube.conf.template /home/odc/.datacube.conf.template
-RUN chown odc:odc /home/odc/.datacube.conf.template
 
-COPY docker/odc/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN useradd -m -s /bin/bash odc \
+    && chown odc:odc /home/odc/.datacube.conf.template
+
+COPY --chmod=0755 docker/odc/entrypoint.sh /entrypoint.sh
 
 USER odc
 WORKDIR /home/odc/app
