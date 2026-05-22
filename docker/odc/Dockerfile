@@ -47,10 +47,9 @@ ENV GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR" \
     GDAL_HTTP_MAX_RETRY="10" \
     GDAL_HTTP_RETRY_DELAY="1"
 
-COPY datacube.conf.template /home/odc/.datacube.conf.template
+RUN useradd -m -s /bin/bash odc
 
-RUN useradd -m -s /bin/bash odc \
-    && chown odc:odc /home/odc/.datacube.conf.template
+COPY --chown=odc:odc datacube.conf.template /home/odc/.datacube.conf.template
 
 COPY --chmod=0755 docker/odc/entrypoint.sh /entrypoint.sh
 

@@ -31,10 +31,10 @@ def datacube_environment():
     while attempts < max_attempts:
         try:
             result = subprocess.run(
-                ["docker", "inspect", "--format='{{.State.Health.Status}}'", "piksel-test-odc-1"],
+                ["docker", "inspect", "--format", "{{.State.Health.Status}}", "piksel-test-odc-1"],
                 capture_output=True, text=True
             )
-            if "healthy" in result.stdout:
+            if "healthy" in result.stdout.lower():
                 print(f"✓ Test containers ready after {attempts+1} attempts")
                 break
         except subprocess.CalledProcessError:
