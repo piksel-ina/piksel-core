@@ -165,7 +165,6 @@ This repo contains GitHub Actions workflows to build and push Docker images to *
 
     Runs automatically when push a Git tag:
     - `odc-*`
-    - `ows-*`
     - `jupyter-*`
     - `dev-jupyter-*`
 

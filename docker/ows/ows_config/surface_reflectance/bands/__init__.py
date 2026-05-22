@@ -1,3 +1,0 @@
-from .sentinel2_bands import SENTINEL2_BANDS, SENTINEL2_BANDS_INFO
-
-__all__ = ['SENTINEL2_BANDS', 'SENTINEL2_BANDS_INFO']

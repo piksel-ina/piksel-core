@@ -5,7 +5,6 @@ on:
   push:
     tags:
       - "odc-*"
-      - "ows-*"
       - "jupyter-*"
       - "dev-jupyter-*"
 
@@ -28,11 +27,6 @@ jobs:
             IMAGE_TAG="${TAG_NAME#odc-}"
             DOCKERFILE="./docker/odc/Dockerfile"
             REPOSITORY="odc"
-          elif [[ $TAG_NAME == ows-* ]]; then
-            COMPONENT="ows"
-            IMAGE_TAG="${TAG_NAME#ows-}"
-            DOCKERFILE="./docker/ows/Dockerfile"
-            REPOSITORY="ows"
           elif [[ $TAG_NAME == dev-jupyter-* ]]; then
             COMPONENT="dev-jupyter"
             IMAGE_TAG="${TAG_NAME#dev-jupyter-}"

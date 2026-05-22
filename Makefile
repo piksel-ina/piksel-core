@@ -34,7 +34,7 @@ help: ## Show this help
 # =========================
 # Docker image build commands
 # =========================
-.PHONY: build-odc build-jupyter build-jupyter-dev build-ows build-all
+.PHONY: build-odc build-jupyter build-jupyter-dev build-all
 build-odc: ## Build base services (Postgis + ODC)
 	@echo "$(BLUE)Building odc docker image...$(NC)"
 	$(DOCKER_COMPOSE) build odc
@@ -47,11 +47,7 @@ build-jupyter-dev: ## Build Jupyter dev Docker image
 	@echo "$(BLUE)Building jupyter-dev docker image...$(NC)"
 	$(DOCKER_COMPOSE) build jupyter-dev
 
-build-ows: ## Build OWS Docker image
-	@echo "$(BLUE)Building ows docker image...$(NC)"
-	$(DOCKER_COMPOSE) build ows
-
-build-all: build-odc build-jupyter build-ows ## Build all Docker images
+build-all: build-odc build-jupyter ## Build all Docker images
 	@echo "$(GREEN)All Docker images built successfully!$(NC)"
 
 # =========================
@@ -79,7 +75,7 @@ check-config: ## Check datacube configuration (runs inside ODC container)
 # =========================
 # Service lifecycle
 # =========================
-.PHONY: up up-all up-jupyter up-jupyter-dev up-explorer up-ows stop down rmvol restart ps logs clean
+.PHONY: up up-all up-jupyter up-jupyter-dev up-explorer stop down rmvol restart ps logs clean
 up: ## Start base services
 	@echo "$(BLUE)Starting Piksel Base services...$(NC)"
 	@export $$(grep -v '^#' .env | xargs) && \
@@ -106,16 +102,10 @@ up-explorer: setup ## Start services with Explorer profile
 	COMPOSE_PROFILES=explorer $(DOCKER_COMPOSE) up -d && \
 	echo "$(GREEN)Services started. Datacube Explorer is available at http://localhost:$$EXPLORER_PORT$(NC)"
 
-up-ows: ## Start services with OWS profile
-	@echo "$(BLUE)Starting Piksel OWS service...$(NC)"
-	@export $$(grep -v '^#' .env | xargs) && \
-	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) up -d && \
-	echo "$(GREEN)OWS started. Available at http://localhost:$${OWS_PORT:-8000}$(NC)"
-
-up-all: ## Start services with Jupyter + Explorer + OWS profiles
+up-all: ## Start services with Jupyter + Explorer profiles
 	@echo "$(BLUE)Starting Piksel Base services...$(NC)"
 	@export $$(grep -v '^#' .env | xargs) && \
-	COMPOSE_PROFILES=jupyter,explorer,ows $(DOCKER_COMPOSE) up -d && \
+	COMPOSE_PROFILES=jupyter,explorer $(DOCKER_COMPOSE) up -d && \
 	echo "$(GREEN)Services started. Jupyter is available at http://localhost:$$JUPYTER_PORT$(NC)" && \
 	echo "$(GREEN)Services started. Datacube Explorer is available at http://localhost:$$EXPLORER_PORT$(NC)"
 
@@ -125,11 +115,11 @@ stop: ## Stop project containers (without removing)
 
 down: ## Stop and remove containers (preserve volumes)
 	@echo "$(BLUE)Stopping and removing Piksel containers (preserving volumes)...$(NC)"
-	COMPOSE_PROFILES=jupyter,jupyter-dev,explorer,ows $(DOCKER_COMPOSE) down
+	COMPOSE_PROFILES=jupyter,jupyter-dev,explorer $(DOCKER_COMPOSE) down
 
 rmvol: ## Stop and remove containers + volumes (destructive)
 	@echo "$(BLUE)Stopping and removing Piksel containers and volumes...$(NC)"
-	COMPOSE_PROFILES=jupyter,jupyter-dev,explorer,ows $(DOCKER_COMPOSE) down -v
+	COMPOSE_PROFILES=jupyter,jupyter-dev,explorer $(DOCKER_COMPOSE) down -v
 
 restart: ## Restart all services
 	@echo "$(BLUE)Restarting Piksel services...$(NC)"
@@ -154,17 +144,9 @@ clean: ## Prune unused Docker resources (prompts; affects whole Docker host)
 	fi
 
 # =========================
-# OWS / Explorer initialization
+# Explorer initialization
 # =========================
-.PHONY: ows-init cubedash-init
-ows-init: ## Initialize OWS (schema + product config)
-	@echo "$(BLUE)Initializing OWS...$(NC)"
-	@export $$(grep -v '^#' .env | xargs) && \
-	echo "${BLUE}Check Datacube Connection:${NC}" && \
-	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update --schema --write-role $$ODC_DEFAULT_DB_USERNAME && \
-	COMPOSE_PROFILES=ows $(DOCKER_COMPOSE) run --rm ows datacube-ows-update s2_l2a geomad_s2_annual s2_geomad_annual && \
-	echo "$(GREEN)OWS Initialized$(NC)"
-
+.PHONY: cubedash-init
 cubedash-init: ## Initialize Datacube Explorer (Cubedash)
 	@echo "$(BLUE)Initializing Datacube Explorer...$(NC)"
 	$(DOCKER_COMPOSE) exec datacube-explorer cubedash-gen --init --all

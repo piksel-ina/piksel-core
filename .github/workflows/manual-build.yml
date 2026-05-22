@@ -12,7 +12,6 @@ on:
           - odc
           - jupyter
           - dev-jupyter
-          - ows
 
 jobs:
   prepare-config:
@@ -32,10 +31,6 @@ jobs:
             "odc")
               DOCKERFILE="./docker/odc/Dockerfile"
               REPOSITORY="odc"
-              ;;
-            "ows")
-              DOCKERFILE="./docker/ows/Dockerfile"
-              REPOSITORY="ows"
               ;;
             "jupyter")
               DOCKERFILE="./docker/jupyter/Dockerfile"
