@@ -50,6 +50,9 @@ build-jupyter-dev: ## Build Jupyter dev Docker image
 build-all: build-odc build-jupyter ## Build all Docker images
 	@echo "$(GREEN)All Docker images built successfully!$(NC)"
 
+build-all-dev: build-odc build-jupyter-dev ## Build all dev Docker images
+	@echo "$(GREEN)All Docker images built successfully!$(NC)"
+
 # =========================
 # Environment / configuration
 # =========================

@@ -39,13 +39,17 @@ Follow these steps to get your ODC environment up and running:
 
     > The generated .env and datacube.conf are starter template. Use them as-is or customise them for your environment before continuing..
 
-3.  **Build the Docker Images:**
+3.  **Build the Docker Image/s:**
 
     ```bash
-    make build
+    # Just ODC
+    make build-odc
+
+    # ODC + Jupyter (if needed)
+    make build-all-dev
     ```
 
-    This command builds the Docker images for your ODC environment. 
+    This command builds the Docker images for your ODC (and optionally Jupyter) environment. 
 
 4.  **Start the Services:**
 
