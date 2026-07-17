@@ -1,0 +1,33 @@
+---
+name: s2_geomad_annual_1000
+description: Sentinel-2 Annual Geometric Median and Median Absolute Deviations for Indonesia. Low resolution (1,000m) mosaic. Red, green, and blue bands.
+metadata_type: eo3
+
+metadata:
+  product:
+    name: s2_geomad_annual_1000
+
+storage:
+  crs: EPSG:6933
+  resolution:
+    x: 1000
+    y: -1000
+
+measurements:
+  - name: "blue"
+    aliases: [band_02, B02]
+    units: "1"
+    dtype: uint16
+    nodata: 0
+
+  - name: "red"
+    aliases: [band_04, B04]
+    units: "1"
+    dtype: uint16
+    nodata: 0
+
+  - name: "green"
+    aliases: [band_03, B03]
+    units: "1"
+    dtype: uint16
+    nodata: 0
