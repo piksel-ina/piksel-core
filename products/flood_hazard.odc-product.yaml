@@ -1,0 +1,189 @@
+# Flood hazard for Indonesia (Bahaya Banjir 2025).
+# One product per return period (option 2). Derived from a Modified Geomorphic
+# Flood Index over FABDEM v1.2 with BMKG design rainfall. Single 2025 epoch.
+# Measurements are identical across products; only return_period differs.
+---
+name: flood_hazard_rp02
+description: Flood hazard (Bahaya Banjir 2025) - 1-in-2-year return period (50% AEP).
+metadata_type: eo3
+metadata:
+  product:
+    name: flood_hazard_rp02
+  properties:
+    return_period: 2
+storage:
+  crs: EPSG:6933
+  resolution:
+    x: 30
+    y: -30
+measurements:
+  - name: flood_depth
+    aliases: [depth]
+    units: metre
+    dtype: float32
+    nodata: 3.4e+38
+  - name: flood_hazard_index
+    aliases: [index, hazard_index]
+    units: "1"
+    dtype: float32
+    nodata: 3.4e+38
+  - name: flood_hazard_class
+    aliases: [classified, hazard_class]
+    units: "1"
+    dtype: uint8
+    nodata: 255
+    flags_definition:
+      hazard:
+        description: Flood hazard class
+        values:
+          1: low
+          2: moderate
+          3: high
+---
+name: flood_hazard_rp05
+description: Flood hazard (Bahaya Banjir 2025) - 1-in-5-year return period (20% AEP).
+metadata_type: eo3
+metadata:
+  product:
+    name: flood_hazard_rp05
+  properties:
+    return_period: 5
+storage:
+  crs: EPSG:6933
+  resolution:
+    x: 30
+    y: -30
+measurements:
+  - name: flood_depth
+    aliases: [depth]
+    units: metre
+    dtype: float32
+    nodata: 3.4e+38
+  - name: flood_hazard_index
+    aliases: [index, hazard_index]
+    units: "1"
+    dtype: float32
+    nodata: 3.4e+38
+  - name: flood_hazard_class
+    aliases: [classified, hazard_class]
+    units: "1"
+    dtype: uint8
+    nodata: 255
+    flags_definition:
+      hazard:
+        description: Flood hazard class
+        values:
+          1: low
+          2: moderate
+          3: high
+---
+name: flood_hazard_rp10
+description: Flood hazard (Bahaya Banjir 2025) - 1-in-10-year return period (10% AEP).
+metadata_type: eo3
+metadata:
+  product:
+    name: flood_hazard_rp10
+  properties:
+    return_period: 10
+storage:
+  crs: EPSG:6933
+  resolution:
+    x: 30
+    y: -30
+measurements:
+  - name: flood_depth
+    aliases: [depth]
+    units: metre
+    dtype: float32
+    nodata: 3.4e+38
+  - name: flood_hazard_index
+    aliases: [index, hazard_index]
+    units: "1"
+    dtype: float32
+    nodata: 3.4e+38
+  - name: flood_hazard_class
+    aliases: [classified, hazard_class]
+    units: "1"
+    dtype: uint8
+    nodata: 255
+    flags_definition:
+      hazard:
+        description: Flood hazard class
+        values:
+          1: low
+          2: moderate
+          3: high
+---
+name: flood_hazard_rp25
+description: Flood hazard (Bahaya Banjir 2025) - 1-in-25-year return period (4% AEP).
+metadata_type: eo3
+metadata:
+  product:
+    name: flood_hazard_rp25
+  properties:
+    return_period: 25
+storage:
+  crs: EPSG:6933
+  resolution:
+    x: 30
+    y: -30
+measurements:
+  - name: flood_depth
+    aliases: [depth]
+    units: metre
+    dtype: float32
+    nodata: 3.4e+38
+  - name: flood_hazard_index
+    aliases: [index, hazard_index]
+    units: "1"
+    dtype: float32
+    nodata: 3.4e+38
+  - name: flood_hazard_class
+    aliases: [classified, hazard_class]
+    units: "1"
+    dtype: uint8
+    nodata: 255
+    flags_definition:
+      hazard:
+        description: Flood hazard class
+        values:
+          1: low
+          2: moderate
+          3: high
+---
+name: flood_hazard_rp50
+description: Flood hazard (Bahaya Banjir 2025) - 1-in-50-year return period (2% AEP).
+metadata_type: eo3
+metadata:
+  product:
+    name: flood_hazard_rp50
+  properties:
+    return_period: 50
+storage:
+  crs: EPSG:6933
+  resolution:
+    x: 30
+    y: -30
+measurements:
+  - name: flood_depth
+    aliases: [depth]
+    units: metre
+    dtype: float32
+    nodata: 3.4e+38
+  - name: flood_hazard_index
+    aliases: [index, hazard_index]
+    units: "1"
+    dtype: float32
+    nodata: 3.4e+38
+  - name: flood_hazard_class
+    aliases: [classified, hazard_class]
+    units: "1"
+    dtype: uint8
+    nodata: 255
+    flags_definition:
+      hazard:
+        description: Flood hazard class
+        values:
+          1: low
+          2: moderate
+          3: high
