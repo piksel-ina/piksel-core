@@ -21,12 +21,12 @@ measurements:
     aliases: [depth]
     units: metre
     dtype: float32
-    nodata: 3.4e+38
+    nodata: .nan
   - name: flood_hazard_index
     aliases: [index, hazard_index]
     units: "1"
     dtype: float32
-    nodata: 3.4e+38
+    nodata: .nan
   - name: flood_hazard_class
     aliases: [classified, hazard_class]
     units: "1"
@@ -59,12 +59,12 @@ measurements:
     aliases: [depth]
     units: metre
     dtype: float32
-    nodata: 3.4e+38
+    nodata: .nan
   - name: flood_hazard_index
     aliases: [index, hazard_index]
     units: "1"
     dtype: float32
-    nodata: 3.4e+38
+    nodata: .nan
   - name: flood_hazard_class
     aliases: [classified, hazard_class]
     units: "1"
@@ -97,12 +97,12 @@ measurements:
     aliases: [depth]
     units: metre
     dtype: float32
-    nodata: 3.4e+38
+    nodata: .nan
   - name: flood_hazard_index
     aliases: [index, hazard_index]
     units: "1"
     dtype: float32
-    nodata: 3.4e+38
+    nodata: .nan
   - name: flood_hazard_class
     aliases: [classified, hazard_class]
     units: "1"
@@ -135,12 +135,12 @@ measurements:
     aliases: [depth]
     units: metre
     dtype: float32
-    nodata: 3.4e+38
+    nodata: .nan
   - name: flood_hazard_index
     aliases: [index, hazard_index]
     units: "1"
     dtype: float32
-    nodata: 3.4e+38
+    nodata: .nan
   - name: flood_hazard_class
     aliases: [classified, hazard_class]
     units: "1"
@@ -173,12 +173,12 @@ measurements:
     aliases: [depth]
     units: metre
     dtype: float32
-    nodata: 3.4e+38
+    nodata: .nan
   - name: flood_hazard_index
     aliases: [index, hazard_index]
     units: "1"
     dtype: float32
-    nodata: 3.4e+38
+    nodata: .nan
   - name: flood_hazard_class
     aliases: [classified, hazard_class]
     units: "1"
