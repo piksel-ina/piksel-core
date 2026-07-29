@@ -9,6 +9,7 @@ COMPOSE_FILE_TEST := docker/docker-compose-test.yml
 PROJECT_NAME := piksel
 ENVIRONMENT ?= default
 EPSG ?= 4326
+FLOOD_HAZARD_RPS ?= rp02 rp05 rp10 rp25 rp50
 
 # Common Docker Compose command with environment variables
 DOCKER_COMPOSE = docker compose --env-file .env -f $(COMPOSE_FILE) -p $(PROJECT_NAME)
@@ -262,7 +263,7 @@ CollectionLsST ?= landsat-c2l2-st
 LIMIT ?= 9999
 
 .PHONY: index-sentinel2 index-s1-rtc index-ls9-st index-ls8-st index-ls7-st index-ls5-st \
-	index-ls9-sr index-ls8-sr index-ls7-sr index-ls5-sr index-all index-landsat index-landsat-sr index-landsat-st index-gm index-s2-gm-annual index-s2-gm-annual-lowres
+	index-ls9-sr index-ls8-sr index-ls7-sr index-ls5-sr index-all index-landsat index-landsat-sr index-landsat-st index-gm index-s2-gm-annual index-s2-gm-annual-lowres index-flood-hazard
 
 index-all: index-sentinel2 index-landsat index-s1-rtc index-gm ## Index Sentinel-2 + Landsat + Sentinel-1 + S2 GeoMAD
 	@echo "$(GREEN)All products indexed successfully!$(NC)"
@@ -407,6 +408,18 @@ index-s2-geomad-annual-lowres: ## Index Sentinel-2 Annual Geomedian - Low Resolu
 	           --rename-product='s2_geomad_annual_120' \
 	           's3://piksel-staging-public-data/s2_geomad_annual_120/1.0.0/**/*.stac-item.json' \
 	           's2_geomad_annual_120'"
+
+index-flood-hazard: ## Index Flood Hazard (Bahaya Banjir 2025) return-period products from S3
+	@echo "$(BLUE)Indexing Flood Hazard (Bahaya Banjir 2025)...$(NC)"
+	@for rp in $(FLOOD_HAZARD_RPS); do \
+	  echo "$(BLUE)  flood_hazard_$$rp$(NC)"; \
+	  $(DOCKER_COMPOSE) exec -T odc \
+	    bash -c "AWS_DEFAULT_REGION=ap-southeast-3 s3-to-dc --stac \
+	             --no-sign-request \
+	             --rename-product='flood_hazard_$$rp' \
+	             's3://piksel-staging-public-data/flood_hazard_$$rp/1.0.0/**/*.stac-item.json' \
+	             'flood_hazard_$$rp'" || exit 1; \
+	done
 # =========================
 # Utility commands
 # =========================
